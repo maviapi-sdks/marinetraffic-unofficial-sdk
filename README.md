@@ -89,7 +89,7 @@ print_r($result);
 
 ```ruby
 # Gemfile
-gem "marinetraffic_sdk", git: "https://github.com/maviapi-sdks/marinetraffic-unofficial-sdk"
+gem "marinetraffic_sdk", git: "https://github.com/maviapi-sdks/marinetraffic-unofficial-sdk", branch: "main"
 ```
 
 ```ruby
