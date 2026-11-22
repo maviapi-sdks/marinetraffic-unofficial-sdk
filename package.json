@@ -1,0 +1,32 @@
+{
+  "name": "marinetraffic-unofficial-sdk",
+  "version": "0.1.0",
+  "description": "Unofficial MarineTraffic API client",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./javascript/index.d.ts",
+      "default": "./javascript/index.js"
+    }
+  },
+  "types": "./javascript/index.d.ts",
+  "files": [
+    "javascript"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "marinetraffic",
+    "marinetraffic-api",
+    "unofficial",
+    "sdk",
+    "maviapi"
+  ],
+  "homepage": "https://maviapi.com/apis/marinetraffic",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maviapi-sdks/marinetraffic-unofficial-sdk.git"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marinetraffic-unofficial-sdk"
+version = "0.1.0"
+description = "Unofficial MarineTraffic API client"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["marinetraffic", "marinetraffic-api", "unofficial", "sdk", "maviapi"]
+
+[project.urls]
+Homepage = "https://maviapi.com/apis/marinetraffic"
+Repository = "https://github.com/maviapi-sdks/marinetraffic-unofficial-sdk"
+
+[tool.setuptools]
+packages = ["marinetraffic_sdk"]

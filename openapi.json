@@ -1,0 +1,2792 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MarineTraffic API",
+    "version": "2026-11-21",
+    "description": "Vessel and port data from MarineTraffic: search vessels by name, IMO or MMSI; vessel particulars; latest AIS position and voyage (destination, ETA); port search and details; and the ships in or near a port.\n\nEvery request needs an API key in the `Authorization: Bearer <key>` header. Create one at https://maviapi.com/dashboard/keys. A successful request uses one credit, unless its operation says more (`x-credits`). That price covers 200 rows (or the operation's `x-credits-rows`); a request that returns more pays it again for each further page of that many rows. The `x-maviapi-credits` response header says what a request cost.\n\nEndpoint reference with live examples: https://maviapi.com/apis/marinetraffic",
+    "termsOfService": "https://maviapi.com/terms"
+  },
+  "externalDocs": {
+    "description": "API page",
+    "url": "https://maviapi.com/apis/marinetraffic"
+  },
+  "servers": [
+    {
+      "url": "https://api.maviapi.com/v1/sites/marinetraffic"
+    }
+  ],
+  "security": [
+    {
+      "maviapiKey": []
+    }
+  ],
+  "paths": {
+    "/ports": {
+      "get": {
+        "operationId": "ports",
+        "summary": "Search ports",
+        "description": "Search ports, anchorages and offshore terminals by name or UN/LOCODE, with country, UN/LOCODE and coordinates. The site returns at most about 12 matches per query and has no paging.\n\nEach successful request uses 10 credits for every 12 rows it returns (at least 10 credits).",
+        "x-credits": 10,
+        "x-credits-rows": 12,
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "description": "Port name (at least 3 characters) or UN/LOCODE",
+            "schema": {
+              "type": "string"
+            },
+            "example": "rotterdam"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Rows per page (default 50, max 200)",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 1,
+              "maximum": 200
+            },
+            "example": 50
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "description": "Rows to skip",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "example": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The data, as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "query": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "rotterdam"
+                        },
+                        "total": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 7
+                        },
+                        "count": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 7
+                        },
+                        "ports": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "port_id": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "2036"
+                              },
+                              "name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "ROTTERDAM"
+                              },
+                              "type": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "Port"
+                              },
+                              "country": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "NETHERLANDS"
+                              },
+                              "country_code": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "NL"
+                              },
+                              "unlocode": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "NLRTM"
+                              },
+                              "latitude": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 51.943306
+                              },
+                              "longitude": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 4.1418123
+                              },
+                              "size": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "Large"
+                              },
+                              "matched_on": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "ROTTERDAM"
+                              },
+                              "url": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "https://www.marinetraffic.com/en/ais/details/ports/2036",
+                                "format": "uri"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "cached": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ],
+                      "example": false
+                    },
+                    "source": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "example": "marinetraffic:web"
+                    },
+                    "pagination": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "total": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 182
+                        },
+                        "limit": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 50
+                        },
+                        "offset": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 0
+                        },
+                        "count": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 50
+                        },
+                        "has_more": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ],
+                          "example": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/CreditLimitReached"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountSuspended"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamFailed"
+          }
+        }
+      }
+    },
+    "/ports/{port}": {
+      "get": {
+        "operationId": "portsPort",
+        "summary": "Port details",
+        "description": "Details of one port: name, UN/LOCODE, country, type, size, coordinates, time zone, other names and its anchorages.\n\nEach successful request uses 10 credits.",
+        "x-credits": 10,
+        "parameters": [
+          {
+            "name": "port",
+            "in": "path",
+            "required": true,
+            "description": "UN/LOCODE (e.g. NLRTM) or MarineTraffic port id (e.g. 2036, the port_id of /ports)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "NLRTM"
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "example": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The data, as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "port_id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "2036"
+                        },
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "ROTTERDAM"
+                        },
+                        "unlocode": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "NLRTM"
+                        },
+                        "country": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "NETHERLANDS"
+                        },
+                        "country_code": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "NL"
+                        },
+                        "type": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "Port"
+                        },
+                        "size": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "Large"
+                        },
+                        "latitude": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 51.943306
+                        },
+                        "longitude": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 4.1418123
+                        },
+                        "utc_offset_hours": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 1
+                        },
+                        "alternative_names": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "string",
+                            "example": "EUROPOORT"
+                          }
+                        },
+                        "anchorages": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "port_id": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "22307"
+                              },
+                              "name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "ROTTERDAM ANCH"
+                              }
+                            }
+                          }
+                        },
+                        "related_ports": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "port_id": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "2033"
+                              },
+                              "name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "ROTTERDAM BOTLEK"
+                              }
+                            }
+                          }
+                        },
+                        "summary": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "ROTTERDAM is located at UK Coast & Atlantic, Rotterdam Area in NETHERLANDS. The official UN/LOCODE of this port is NLRTM."
+                        },
+                        "url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "https://www.marinetraffic.com/en/ais/details/ports/2036",
+                          "format": "uri"
+                        }
+                      }
+                    },
+                    "cached": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ],
+                      "example": false
+                    },
+                    "source": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "example": "marinetraffic:web"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/CreditLimitReached"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountSuspended"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamFailed"
+          }
+        }
+      }
+    },
+    "/ports/{port}/vessels": {
+      "get": {
+        "operationId": "portsPortVessels",
+        "summary": "Vessels in or near a port",
+        "description": "Ships currently in or near a port: every vessel the live map shows within radius_km of the port's position, nearest first, with position, speed, course, destination and size. `complete` is false only if part of the area could not be read.\n\nEach successful request uses 10 credits.",
+        "x-credits": 10,
+        "parameters": [
+          {
+            "name": "port",
+            "in": "path",
+            "required": true,
+            "description": "UN/LOCODE or MarineTraffic port id",
+            "schema": {
+              "type": "string"
+            },
+            "example": "NLRTM"
+          },
+          {
+            "name": "radius_km",
+            "in": "query",
+            "required": false,
+            "description": "Search radius around the port position, 0.5 to 15 km",
+            "schema": {
+              "type": "number",
+              "default": 5,
+              "minimum": 0.5,
+              "maximum": 15
+            },
+            "example": 5
+          },
+          {
+            "name": "vessel_type",
+            "in": "query",
+            "required": false,
+            "description": "Only vessels of this map category",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "cargo",
+                "tanker",
+                "passenger",
+                "fishing",
+                "tug_special",
+                "high_speed",
+                "pleasure",
+                "navigation_aid",
+                "unspecified"
+              ]
+            },
+            "example": "cargo"
+          },
+          {
+            "name": "moving",
+            "in": "query",
+            "required": false,
+            "description": "true: only vessels moving at 1 knot or more; false: only vessels stopped or moored",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Rows per page (default 50, max 200)",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 1,
+              "maximum": 200
+            },
+            "example": 50
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "description": "Rows to skip",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "example": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The data, as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "port": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "port_id": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "2036"
+                            },
+                            "name": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "ROTTERDAM"
+                            },
+                            "unlocode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "NLRTM"
+                            },
+                            "country_code": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "NL"
+                            },
+                            "latitude": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 51.943306
+                            },
+                            "longitude": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 4.1418123
+                            }
+                          }
+                        },
+                        "radius_km": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 5
+                        },
+                        "vessel_type": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "nullable": true,
+                          "example": null
+                        },
+                        "moving": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ],
+                          "nullable": true,
+                          "example": null
+                        },
+                        "complete": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ],
+                          "example": true
+                        },
+                        "map_requests": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 4
+                        },
+                        "count": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 182
+                        },
+                        "vessels": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "ship_id": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "3387654"
+                              },
+                              "ref": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "shipid:3387654"
+                              },
+                              "name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "SNIP"
+                              },
+                              "flag_code": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "NL"
+                              },
+                              "vessel_type": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "cargo"
+                              },
+                              "latitude": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 51.952328
+                              },
+                              "longitude": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 4.1202168
+                              },
+                              "distance_km": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 1.77
+                              },
+                              "speed_knots": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 0
+                              },
+                              "course": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "nullable": true,
+                                "example": null
+                              },
+                              "heading": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 169
+                              },
+                              "destination": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "ROTTERDAM"
+                              },
+                              "length_m": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 64
+                              },
+                              "width_m": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 7
+                              },
+                              "dwt": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "nullable": true,
+                                "example": 1200
+                              },
+                              "position_age_minutes": {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ],
+                                "example": 2
+                              },
+                              "timestamp": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "2026-11-21T06:40:00.000Z",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "cached": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ],
+                      "example": false
+                    },
+                    "source": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "example": "marinetraffic:web"
+                    },
+                    "pagination": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "total": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 182
+                        },
+                        "limit": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 50
+                        },
+                        "offset": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 0
+                        },
+                        "count": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 50
+                        },
+                        "has_more": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ],
+                          "example": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/CreditLimitReached"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountSuspended"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamFailed"
+          }
+        }
+      }
+    },
+    "/track": {
+      "get": {
+        "operationId": "track",
+        "summary": "Track a vessel or port",
+        "description": "One call from free text to the live picture. kind=vessel: resolves an IMO, MMSI or exact vessel name and returns its details and latest position. kind=port: resolves a UN/LOCODE or exact port name and returns its details and the nearest vessels within 5 km. An ambiguous name answers 400 with candidates.\n\nEach successful request uses 10 credits.",
+        "x-credits": 10,
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "description": "Vessel name/IMO/MMSI, or port name/UN/LOCODE",
+            "schema": {
+              "type": "string"
+            },
+            "example": "ever given"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "description": "What to resolve the text to",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vessel",
+                "port"
+              ],
+              "default": "vessel"
+            },
+            "example": "vessel"
+          },
+          {
+            "name": "nearby",
+            "in": "query",
+            "required": false,
+            "description": "kind=port: how many nearby vessels to include (0 to 50)",
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 0,
+              "maximum": 50
+            },
+            "example": 10
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "example": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The data, as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "vessel"
+                        },
+                        "resolved": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "input": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "ever given"
+                            },
+                            "id": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "shipid:5630138"
+                            },
+                            "name": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "EVER GIVEN"
+                            },
+                            "type": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "vessel"
+                            }
+                          }
+                        },
+                        "vessel": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "ship_id": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "5630138",
+                              "description": "MarineTraffic ship id"
+                            },
+                            "ref": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "shipid:5630138",
+                              "description": "Identifier accepted by /vessels/{imo} (works for vessels without an IMO)"
+                            },
+                            "name": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "EVER GIVEN"
+                            },
+                            "ais_name": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "EVER GIVEN"
+                            },
+                            "imo": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "9811000"
+                            },
+                            "mmsi": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "636026627"
+                            },
+                            "call_sign": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "A8AB9"
+                            },
+                            "flag": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "Liberia"
+                            },
+                            "flag_code": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "LR"
+                            },
+                            "vessel_type": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "Container Ship"
+                            },
+                            "ais_type": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "Cargo - Hazard A (Major)"
+                            },
+                            "market": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "CONTAINER SHIPS"
+                            },
+                            "size_class": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "ULCV"
+                            },
+                            "length_m": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 399.94
+                            },
+                            "width_m": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 59
+                            },
+                            "ais_class": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "Class A"
+                            },
+                            "home_port": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "nullable": true,
+                              "example": null
+                            },
+                            "url": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138",
+                              "format": "uri"
+                            }
+                          }
+                        },
+                        "position": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "name": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "EVER GIVEN"
+                            },
+                            "imo": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "9811000"
+                            },
+                            "mmsi": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "636026627"
+                            },
+                            "ship_id": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "5630138"
+                            },
+                            "latitude": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 26.873938
+                            },
+                            "longitude": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 122.03899
+                            },
+                            "speed_knots": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 15.1
+                            },
+                            "course": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 208
+                            },
+                            "heading": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 213
+                            },
+                            "rate_of_turn": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 9
+                            },
+                            "draught_m": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 14.2
+                            },
+                            "status": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "Underway using Engine"
+                            },
+                            "area": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "East China Sea"
+                            },
+                            "timestamp": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "2026-11-21T05:41:07.000Z",
+                              "format": "date-time"
+                            },
+                            "position_age_minutes": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ],
+                              "example": 47
+                            },
+                            "received_by": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "Roaming",
+                              "description": "Terrestrial (station) or roaming/satellite reception"
+                            },
+                            "in_range": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ],
+                              "example": true
+                            },
+                            "destination": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "TWTPE",
+                              "description": "Destination as reported by the crew over AIS"
+                            },
+                            "eta": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "2026-11-21T14:00:00.000Z",
+                              "format": "date-time"
+                            },
+                            "voyage_progress_pct": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 70.9
+                            },
+                            "departure_port": {
+                              "type": [
+                                "object",
+                                "null"
+                              ],
+                              "properties": {
+                                "port_id": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "1253"
+                                },
+                                "name": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "SHANGHAI"
+                                },
+                                "unlocode": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "CNSHG"
+                                },
+                                "country_code": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "CN"
+                                }
+                              }
+                            },
+                            "departure_time": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "2026-11-20T11:25:00.000Z",
+                              "format": "date-time"
+                            },
+                            "arrival_port": {
+                              "type": [
+                                "object",
+                                "null"
+                              ],
+                              "properties": {
+                                "port_id": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "447"
+                                },
+                                "name": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "TAIPEI"
+                                },
+                                "unlocode": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "TWTPE"
+                                },
+                                "country_code": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "TW"
+                                }
+                              }
+                            },
+                            "arrival_time": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "2026-11-21T14:00:00.000Z",
+                              "format": "date-time"
+                            },
+                            "arrival_time_kind": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "estimated",
+                              "enum": [
+                                "estimated",
+                                "actual",
+                                null
+                              ]
+                            }
+                          }
+                        },
+                        "port": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "port_id": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "2036"
+                            },
+                            "name": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "ROTTERDAM"
+                            },
+                            "unlocode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "NLRTM"
+                            },
+                            "country": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "NETHERLANDS"
+                            },
+                            "country_code": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "NL"
+                            },
+                            "type": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "Port"
+                            },
+                            "size": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "Large"
+                            },
+                            "latitude": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 51.943306
+                            },
+                            "longitude": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 4.1418123
+                            },
+                            "utc_offset_hours": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 1
+                            },
+                            "alternative_names": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "string",
+                                "example": "EUROPOORT"
+                              }
+                            },
+                            "anchorages": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "port_id": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "example": "22307"
+                                  },
+                                  "name": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "example": "ROTTERDAM ANCH"
+                                  }
+                                }
+                              }
+                            },
+                            "related_ports": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "port_id": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "example": "2033"
+                                  },
+                                  "name": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "example": "ROTTERDAM BOTLEK"
+                                  }
+                                }
+                              }
+                            },
+                            "summary": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "ROTTERDAM is located at UK Coast & Atlantic, Rotterdam Area in NETHERLANDS. The official UN/LOCODE of this port is NLRTM."
+                            },
+                            "url": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "https://www.marinetraffic.com/en/ais/details/ports/2036",
+                              "format": "uri"
+                            }
+                          }
+                        },
+                        "nearby": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "radius_km": {
+                              "type": [
+                                "number",
+                                "null"
+                              ],
+                              "example": 5
+                            },
+                            "count": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ],
+                              "example": 182
+                            },
+                            "vessels": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "ship_id": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "example": "3387654"
+                                  },
+                                  "ref": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "example": "shipid:3387654"
+                                  },
+                                  "name": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "example": "SNIP"
+                                  },
+                                  "flag_code": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "example": "NL"
+                                  },
+                                  "vessel_type": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "example": "cargo"
+                                  },
+                                  "latitude": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
+                                    "example": 51.952328
+                                  },
+                                  "longitude": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
+                                    "example": 4.1202168
+                                  },
+                                  "distance_km": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
+                                    "example": 1.77
+                                  },
+                                  "speed_knots": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
+                                    "example": 0
+                                  },
+                                  "course": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
+                                    "nullable": true,
+                                    "example": null
+                                  },
+                                  "heading": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
+                                    "example": 169
+                                  },
+                                  "destination": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "example": "ROTTERDAM"
+                                  },
+                                  "length_m": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
+                                    "example": 64
+                                  },
+                                  "width_m": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
+                                    "example": 7
+                                  },
+                                  "dwt": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
+                                    "nullable": true,
+                                    "example": 1200
+                                  },
+                                  "position_age_minutes": {
+                                    "type": [
+                                      "integer",
+                                      "null"
+                                    ],
+                                    "example": 2
+                                  },
+                                  "timestamp": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
+                                    "example": "2026-11-21T06:40:00.000Z",
+                                    "format": "date-time"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "cached": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ],
+                      "example": false
+                    },
+                    "source": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "example": "marinetraffic:web"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/CreditLimitReached"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountSuspended"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamFailed"
+          }
+        }
+      }
+    },
+    "/vessels": {
+      "get": {
+        "operationId": "vessels",
+        "summary": "Search vessels",
+        "description": "Search vessels by name, IMO or MMSI. Each match carries its particulars (IMO, MMSI, call sign, flag, type, size). The site returns at most 12 matches per query and has no paging: use a fuller name, or the IMO/MMSI, to reach a specific vessel.\n\nEach successful request uses 10 credits for every 12 rows it returns (at least 10 credits).",
+        "x-credits": 10,
+        "x-credits-rows": 12,
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "description": "Vessel name (at least 3 characters), IMO number or MMSI",
+            "schema": {
+              "type": "string"
+            },
+            "example": "ever given"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Rows per page (default 50, max 200)",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 1,
+              "maximum": 200
+            },
+            "example": 50
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "description": "Rows to skip",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "example": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The data, as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "query": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "ever given"
+                        },
+                        "total": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 1
+                        },
+                        "count": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 1
+                        },
+                        "vessels": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "ship_id": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "5630138",
+                                "description": "MarineTraffic ship id"
+                              },
+                              "ref": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "shipid:5630138",
+                                "description": "Identifier accepted by /vessels/{imo} (works for vessels without an IMO)"
+                              },
+                              "name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "EVER GIVEN"
+                              },
+                              "ais_name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "EVER GIVEN"
+                              },
+                              "imo": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "9811000"
+                              },
+                              "mmsi": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "636026627"
+                              },
+                              "call_sign": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "A8AB9"
+                              },
+                              "flag": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "Liberia"
+                              },
+                              "flag_code": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "LR"
+                              },
+                              "vessel_type": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "Container Ship"
+                              },
+                              "ais_type": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "Cargo - Hazard A (Major)"
+                              },
+                              "market": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "CONTAINER SHIPS"
+                              },
+                              "size_class": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "ULCV"
+                              },
+                              "length_m": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 399.94
+                              },
+                              "width_m": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 59
+                              },
+                              "ais_class": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "Class A"
+                              },
+                              "home_port": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "nullable": true,
+                                "example": null
+                              },
+                              "url": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138",
+                                "format": "uri"
+                              },
+                              "matched_on": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "example": "EVER GIVEN"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "cached": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ],
+                      "example": false
+                    },
+                    "source": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "example": "marinetraffic:web"
+                    },
+                    "pagination": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "total": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 182
+                        },
+                        "limit": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 50
+                        },
+                        "offset": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 0
+                        },
+                        "count": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 50
+                        },
+                        "has_more": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ],
+                          "example": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/CreditLimitReached"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountSuspended"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamFailed"
+          }
+        }
+      }
+    },
+    "/vessels/{imo}": {
+      "get": {
+        "operationId": "vesselsImo",
+        "summary": "Vessel details",
+        "description": "Registry details of one vessel: name, IMO, MMSI, call sign, flag, type, commercial market and size class, length and width. Build year is not public on the site (login only) and is not returned.\n\nEach successful request uses 10 credits.",
+        "x-credits": 10,
+        "parameters": [
+          {
+            "name": "imo",
+            "in": "path",
+            "required": true,
+            "description": "7-digit IMO number, 9-digit MMSI, or shipid:<id> (the `ref` of a list row, for vessels with no IMO)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "9811000"
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "example": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The data, as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "ship_id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "5630138",
+                          "description": "MarineTraffic ship id"
+                        },
+                        "ref": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "shipid:5630138",
+                          "description": "Identifier accepted by /vessels/{imo} (works for vessels without an IMO)"
+                        },
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "EVER GIVEN"
+                        },
+                        "ais_name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "EVER GIVEN"
+                        },
+                        "imo": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "9811000"
+                        },
+                        "mmsi": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "636026627"
+                        },
+                        "call_sign": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "A8AB9"
+                        },
+                        "flag": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "Liberia"
+                        },
+                        "flag_code": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "LR"
+                        },
+                        "vessel_type": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "Container Ship"
+                        },
+                        "ais_type": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "Cargo - Hazard A (Major)"
+                        },
+                        "market": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "CONTAINER SHIPS"
+                        },
+                        "size_class": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "ULCV"
+                        },
+                        "length_m": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 399.94
+                        },
+                        "width_m": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 59
+                        },
+                        "ais_class": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "Class A"
+                        },
+                        "home_port": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "nullable": true,
+                          "example": null
+                        },
+                        "url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138",
+                          "format": "uri"
+                        },
+                        "summary": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "EVER GIVEN (IMO: 9811000) is a Container Ship and is sailing under the flag of Liberia."
+                        }
+                      }
+                    },
+                    "cached": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ],
+                      "example": false
+                    },
+                    "source": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "example": "marinetraffic:web"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/CreditLimitReached"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountSuspended"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamFailed"
+          }
+        }
+      }
+    },
+    "/vessels/{imo}/position": {
+      "get": {
+        "operationId": "vesselsImoPosition",
+        "summary": "Vessel position",
+        "description": "Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational status, time of report) with its voyage: reported destination, ETA, departure and arrival ports.\n\nEach successful request uses 10 credits.",
+        "x-credits": 10,
+        "parameters": [
+          {
+            "name": "imo",
+            "in": "path",
+            "required": true,
+            "description": "7-digit IMO number, 9-digit MMSI, or shipid:<id>",
+            "schema": {
+              "type": "string"
+            },
+            "example": "9811000"
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "example": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The data, as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "EVER GIVEN"
+                        },
+                        "imo": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "9811000"
+                        },
+                        "mmsi": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "636026627"
+                        },
+                        "ship_id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "5630138"
+                        },
+                        "latitude": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 26.873938
+                        },
+                        "longitude": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 122.03899
+                        },
+                        "speed_knots": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 15.1
+                        },
+                        "course": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 208
+                        },
+                        "heading": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 213
+                        },
+                        "rate_of_turn": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 9
+                        },
+                        "draught_m": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 14.2
+                        },
+                        "status": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "Underway using Engine"
+                        },
+                        "area": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "East China Sea"
+                        },
+                        "timestamp": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "2026-11-21T05:41:07.000Z",
+                          "format": "date-time"
+                        },
+                        "position_age_minutes": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 47
+                        },
+                        "received_by": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "Roaming",
+                          "description": "Terrestrial (station) or roaming/satellite reception"
+                        },
+                        "in_range": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ],
+                          "example": true
+                        },
+                        "destination": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "TWTPE",
+                          "description": "Destination as reported by the crew over AIS"
+                        },
+                        "eta": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "2026-11-21T14:00:00.000Z",
+                          "format": "date-time"
+                        },
+                        "voyage_progress_pct": {
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "example": 70.9
+                        },
+                        "departure_port": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "port_id": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "1253"
+                            },
+                            "name": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "SHANGHAI"
+                            },
+                            "unlocode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "CNSHG"
+                            },
+                            "country_code": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "CN"
+                            }
+                          }
+                        },
+                        "departure_time": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "2026-11-20T11:25:00.000Z",
+                          "format": "date-time"
+                        },
+                        "arrival_port": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "port_id": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "447"
+                            },
+                            "name": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "TAIPEI"
+                            },
+                            "unlocode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "TWTPE"
+                            },
+                            "country_code": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "TW"
+                            }
+                          }
+                        },
+                        "arrival_time": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "2026-11-21T14:00:00.000Z",
+                          "format": "date-time"
+                        },
+                        "arrival_time_kind": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "estimated",
+                          "enum": [
+                            "estimated",
+                            "actual",
+                            null
+                          ]
+                        }
+                      }
+                    },
+                    "cached": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ],
+                      "example": false
+                    },
+                    "source": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "example": "marinetraffic:web"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/CreditLimitReached"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountSuspended"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamFailed"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "maviapiKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Your maviapi API key, sent as `Authorization: Bearer <key>`. Create one at https://maviapi.com/dashboard/keys."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Machine-readable code, e.g. `rate_limited`."
+          },
+          "message": {
+            "type": "string",
+            "description": "What went wrong, in a sentence."
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "A parameter is missing or cannot be used.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "bad_request",
+              "message": "Missing required query parameter: q"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "No API key was sent, or the key is invalid or revoked (`missing_api_key`, `invalid_api_key`).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "missing_api_key",
+              "message": "Provide an API key via the Authorization: Bearer <key> header."
+            }
+          }
+        }
+      },
+      "CreditLimitReached": {
+        "description": "The plan's credits for this period are used up.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "credit_limit_reached",
+              "message": "You've used all 5,000 credits in your Trial plan for this period. Upgrade your plan for a higher allotment."
+            }
+          }
+        }
+      },
+      "AccountSuspended": {
+        "description": "The account that owns the key is suspended.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "account_banned",
+              "message": "Your account is suspended."
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Too many requests for this key. Wait the number of seconds in `Retry-After`.",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds to wait before retrying.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "rate_limited",
+              "message": "Rate limit exceeded for this API key."
+            }
+          }
+        }
+      },
+      "UpstreamFailed": {
+        "description": "The source site could not be read this time. Retrying later usually works.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "scrape_failed",
+              "message": "The upstream source could not be fetched"
+            }
+          }
+        }
+      }
+    }
+  }
+}

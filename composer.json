@@ -1,0 +1,24 @@
+{
+  "name": "maviapi-sdks/marinetraffic-unofficial-sdk",
+  "description": "Unofficial MarineTraffic API client",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "marinetraffic",
+    "marinetraffic-api",
+    "unofficial",
+    "sdk",
+    "maviapi"
+  ],
+  "homepage": "https://maviapi.com/apis/marinetraffic",
+  "require": {
+    "php": ">=8.1",
+    "ext-curl": "*",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "classmap": [
+      "php/"
+    ]
+  }
+}
