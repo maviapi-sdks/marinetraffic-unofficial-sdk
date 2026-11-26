@@ -66,7 +66,7 @@ public class MarinetrafficClient
     //     2036, the port_id of /ports)
     //   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
     //     minutes)
-    public Task<JsonElement> PortsPortAsync(IDictionary<string, object?> parameters, CancellationToken cancellationToken = default) =>
+    public Task<JsonElement> PortsByPortAsync(IDictionary<string, object?> parameters, CancellationToken cancellationToken = default) =>
         GetAsync("/ports/{port}", parameters, cancellationToken, "port");
 
     // Ships currently in or near a port: every vessel the live map shows within radius_km
@@ -87,7 +87,7 @@ public class MarinetrafficClient
     //   offset (integer): Rows to skip
     //   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
     //     minutes)
-    public Task<JsonElement> PortsPortVesselsAsync(IDictionary<string, object?> parameters, CancellationToken cancellationToken = default) =>
+    public Task<JsonElement> PortsVesselsByPortAsync(IDictionary<string, object?> parameters, CancellationToken cancellationToken = default) =>
         GetAsync("/ports/{port}/vessels", parameters, cancellationToken, "port");
 
     // One call from free text to the live picture. kind=vessel: resolves an IMO, MMSI or
@@ -134,7 +134,7 @@ public class MarinetrafficClient
     //     `ref` of a list row, for vessels with no IMO)
     //   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
     //     minutes)
-    public Task<JsonElement> VesselsImoAsync(IDictionary<string, object?> parameters, CancellationToken cancellationToken = default) =>
+    public Task<JsonElement> VesselsByImoAsync(IDictionary<string, object?> parameters, CancellationToken cancellationToken = default) =>
         GetAsync("/vessels/{imo}", parameters, cancellationToken, "imo");
 
     // Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational
@@ -147,7 +147,7 @@ public class MarinetrafficClient
     //   imo (string, required): 7-digit IMO number, 9-digit MMSI, or shipid:<id>
     //   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
     //     minutes)
-    public Task<JsonElement> VesselsImoPositionAsync(IDictionary<string, object?> parameters, CancellationToken cancellationToken = default) =>
+    public Task<JsonElement> VesselsPositionByImoAsync(IDictionary<string, object?> parameters, CancellationToken cancellationToken = default) =>
         GetAsync("/vessels/{imo}/position", parameters, cancellationToken, "imo");
 
     private static string First(params string?[] values) => values.First(value => !string.IsNullOrEmpty(value))!;

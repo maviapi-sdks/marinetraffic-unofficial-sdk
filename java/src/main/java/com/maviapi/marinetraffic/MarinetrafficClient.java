@@ -91,7 +91,7 @@ public class MarinetrafficClient {
      *   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
      *     minutes)
      */
-    public String portsPort(Map<String, Object> params) {
+    public String portsByPort(Map<String, Object> params) {
         return get("/ports/{port}", params, "port");
     }
 
@@ -115,7 +115,7 @@ public class MarinetrafficClient {
      *   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
      *     minutes)
      */
-    public String portsPortVessels(Map<String, Object> params) {
+    public String portsVesselsByPort(Map<String, Object> params) {
         return get("/ports/{port}/vessels", params, "port");
     }
 
@@ -171,7 +171,7 @@ public class MarinetrafficClient {
      *   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
      *     minutes)
      */
-    public String vesselsImo(Map<String, Object> params) {
+    public String vesselsByImo(Map<String, Object> params) {
         return get("/vessels/{imo}", params, "imo");
     }
 
@@ -187,7 +187,7 @@ public class MarinetrafficClient {
      *   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
      *     minutes)
      */
-    public String vesselsImoPosition(Map<String, Object> params) {
+    public String vesselsPositionByImo(Map<String, Object> params) {
         return get("/vessels/{imo}/position", params, "imo");
     }
 

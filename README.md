@@ -176,7 +176,7 @@ A request the API answers with an error status raises an `ApiError` (in Go, retu
 | 401 | `missing_api_key` | No API key was sent, or the key is invalid or revoked (`missing_api_key`, `invalid_api_key`). |
 | 402 | `credit_limit_reached` | The plan's credits for this period are used up. |
 | 403 | `account_banned` | The account that owns the key is suspended. |
-| 429 | `rate_limited` | Too many requests for this key. Wait the number of seconds in `Retry-After`. |
+| 429 | `rate_limited` | Too many requests for this key (`rate_limited`), or too many at once for its plan (`concurrency_limited`). Wait the number of seconds in `Retry-After`. |
 | 502 | `scrape_failed` | The source site could not be read this time. Retrying later usually works. |
 
 ## Endpoint reference
@@ -243,7 +243,7 @@ Details of one port: name, UN/LOCODE, country, type, size, coordinates, time zon
 
 Each successful request uses 10 credits.
 
-Methods: `ports_port` (Python, Ruby) · `portsPort` (JavaScript/TypeScript, PHP, Java) · `PortsPort` (Go) · `PortsPortAsync` (C#)
+Methods: `ports_by_port` (Python, Ruby) · `portsByPort` (JavaScript/TypeScript, PHP, Java) · `PortsByPort` (Go) · `PortsByPortAsync` (C#)
 
 Parameters:
 
@@ -297,7 +297,7 @@ Ships currently in or near a port: every vessel the live map shows within radius
 
 Each successful request uses 10 credits.
 
-Methods: `ports_port_vessels` (Python, Ruby) · `portsPortVessels` (JavaScript/TypeScript, PHP, Java) · `PortsPortVessels` (Go) · `PortsPortVesselsAsync` (C#)
+Methods: `ports_vessels_by_port` (Python, Ruby) · `portsVesselsByPort` (JavaScript/TypeScript, PHP, Java) · `PortsVesselsByPort` (Go) · `PortsVesselsByPortAsync` (C#)
 
 Parameters:
 
@@ -580,7 +580,7 @@ Registry details of one vessel: name, IMO, MMSI, call sign, flag, type, commerci
 
 Each successful request uses 10 credits.
 
-Methods: `vessels_imo` (Python, Ruby) · `vesselsImo` (JavaScript/TypeScript, PHP, Java) · `VesselsImo` (Go) · `VesselsImoAsync` (C#)
+Methods: `vessels_by_imo` (Python, Ruby) · `vesselsByImo` (JavaScript/TypeScript, PHP, Java) · `VesselsByImo` (Go) · `VesselsByImoAsync` (C#)
 
 Parameters:
 
@@ -626,7 +626,7 @@ Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational
 
 Each successful request uses 10 credits.
 
-Methods: `vessels_imo_position` (Python, Ruby) · `vesselsImoPosition` (JavaScript/TypeScript, PHP, Java) · `VesselsImoPosition` (Go) · `VesselsImoPositionAsync` (C#)
+Methods: `vessels_position_by_imo` (Python, Ruby) · `vesselsPositionByImo` (JavaScript/TypeScript, PHP, Java) · `VesselsPositionByImo` (Go) · `VesselsPositionByImoAsync` (C#)
 
 Parameters:
 
@@ -689,7 +689,7 @@ Parameters:
 - [maviapi MCP server](https://maviapi.com/docs#mcp): the same API as tools for Claude, Cursor and other AI agents.
 - [All maviapi APIs](https://maviapi.com/apis?utm_source=github&utm_medium=readme&utm_campaign=sdk-marinetraffic). Need a website that is not there? [Ask for it](https://maviapi.com/?utm_source=github&utm_medium=readme&utm_campaign=sdk-marinetraffic) and get an API for it.
 
-Other unofficial SDKs: [Airbnb](https://github.com/maviapi-sdks/airbnb-unofficial-sdk) · [Booking.com](https://github.com/maviapi-sdks/booking-unofficial-sdk) · [GetYourGuide](https://github.com/maviapi-sdks/getyourguide-unofficial-sdk) · [Kiwi.com](https://github.com/maviapi-sdks/kiwi-unofficial-sdk) · [Speedtest](https://github.com/maviapi-sdks/speedtest-unofficial-sdk) · [Trainline](https://github.com/maviapi-sdks/trainline-unofficial-sdk) · [Trendyol](https://github.com/maviapi-sdks/trendyol-unofficial-sdk) · [Tripadvisor](https://github.com/maviapi-sdks/tripadvisor-unofficial-sdk) · [Yemeksepeti](https://github.com/maviapi-sdks/yemeksepeti-unofficial-sdk)
+Other unofficial SDKs: [Airbnb](https://github.com/maviapi-sdks/airbnb-unofficial-sdk) · [Booking.com](https://github.com/maviapi-sdks/booking-unofficial-sdk) · [GetYourGuide](https://github.com/maviapi-sdks/getyourguide-unofficial-sdk) · [Google Search](https://github.com/maviapi-sdks/google-search-unofficial-sdk) · [Kiwi.com](https://github.com/maviapi-sdks/kiwi-unofficial-sdk) · [Speedtest](https://github.com/maviapi-sdks/speedtest-unofficial-sdk) · [Trainline](https://github.com/maviapi-sdks/trainline-unofficial-sdk) · [Trendyol](https://github.com/maviapi-sdks/trendyol-unofficial-sdk) · [Tripadvisor](https://github.com/maviapi-sdks/tripadvisor-unofficial-sdk) · [Yemeksepeti](https://github.com/maviapi-sdks/yemeksepeti-unofficial-sdk)
 
 ## License
 

@@ -83,7 +83,7 @@ func (c *Client) Ports(ctx context.Context, params Params) (json.RawMessage, err
 	return c.get(ctx, "/ports", params, "query")
 }
 
-// PortsPort: Details of one port: name, UN/LOCODE, country, type, size, coordinates, time zone,
+// PortsByPort: Details of one port: name, UN/LOCODE, country, type, size, coordinates, time zone,
 // other names and its anchorages.
 //
 // Each successful request uses 10 credits.
@@ -94,11 +94,11 @@ func (c *Client) Ports(ctx context.Context, params Params) (json.RawMessage, err
 //     2036, the port_id of /ports)
 //   - refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
 //     minutes)
-func (c *Client) PortsPort(ctx context.Context, params Params) (json.RawMessage, error) {
+func (c *Client) PortsByPort(ctx context.Context, params Params) (json.RawMessage, error) {
 	return c.get(ctx, "/ports/{port}", params, "port")
 }
 
-// PortsPortVessels: Ships currently in or near a port: every vessel the live map shows within radius_km
+// PortsVesselsByPort: Ships currently in or near a port: every vessel the live map shows within radius_km
 // of the port's position, nearest first, with position, speed, course, destination and
 // size. `complete` is false only if part of the area could not be read.
 //
@@ -117,7 +117,7 @@ func (c *Client) PortsPort(ctx context.Context, params Params) (json.RawMessage,
 //   - offset (integer): Rows to skip
 //   - refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
 //     minutes)
-func (c *Client) PortsPortVessels(ctx context.Context, params Params) (json.RawMessage, error) {
+func (c *Client) PortsVesselsByPort(ctx context.Context, params Params) (json.RawMessage, error) {
 	return c.get(ctx, "/ports/{port}/vessels", params, "port")
 }
 
@@ -158,7 +158,7 @@ func (c *Client) Vessels(ctx context.Context, params Params) (json.RawMessage, e
 	return c.get(ctx, "/vessels", params, "query")
 }
 
-// VesselsImo: Registry details of one vessel: name, IMO, MMSI, call sign, flag, type, commercial
+// VesselsByImo: Registry details of one vessel: name, IMO, MMSI, call sign, flag, type, commercial
 // market and size class, length and width. Build year is not public on the site (login
 // only) and is not returned.
 //
@@ -170,11 +170,11 @@ func (c *Client) Vessels(ctx context.Context, params Params) (json.RawMessage, e
 //     `ref` of a list row, for vessels with no IMO)
 //   - refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
 //     minutes)
-func (c *Client) VesselsImo(ctx context.Context, params Params) (json.RawMessage, error) {
+func (c *Client) VesselsByImo(ctx context.Context, params Params) (json.RawMessage, error) {
 	return c.get(ctx, "/vessels/{imo}", params, "imo")
 }
 
-// VesselsImoPosition: Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational
+// VesselsPositionByImo: Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational
 // status, time of report) with its voyage: reported destination, ETA, departure and
 // arrival ports.
 //
@@ -185,7 +185,7 @@ func (c *Client) VesselsImo(ctx context.Context, params Params) (json.RawMessage
 //   - imo (string, required): 7-digit IMO number, 9-digit MMSI, or shipid:<id>
 //   - refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
 //     minutes)
-func (c *Client) VesselsImoPosition(ctx context.Context, params Params) (json.RawMessage, error) {
+func (c *Client) VesselsPositionByImo(ctx context.Context, params Params) (json.RawMessage, error) {
 	return c.get(ctx, "/vessels/{imo}/position", params, "imo")
 }
 

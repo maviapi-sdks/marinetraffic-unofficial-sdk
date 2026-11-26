@@ -67,7 +67,7 @@ class MarinetrafficClient:
         """
         return self._get("/ports", {"query": query, "limit": limit, "offset": offset, "refresh": refresh})
 
-    def ports_port(self, *, port: str, refresh: Optional[bool] = None) -> Dict[str, Any]:
+    def ports_by_port(self, *, port: str, refresh: Optional[bool] = None) -> Dict[str, Any]:
         """
         Details of one port: name, UN/LOCODE, country, type, size, coordinates, time zone,
         other names and its anchorages.
@@ -82,7 +82,7 @@ class MarinetrafficClient:
         """
         return self._get("/ports/{port}", {"port": port, "refresh": refresh})
 
-    def ports_port_vessels(self, *, port: str, radius_km: Optional[float] = None, vessel_type: Optional[str] = None, moving: Optional[bool] = None, limit: Optional[int] = None, offset: Optional[int] = None, refresh: Optional[bool] = None) -> Dict[str, Any]:
+    def ports_vessels_by_port(self, *, port: str, radius_km: Optional[float] = None, vessel_type: Optional[str] = None, moving: Optional[bool] = None, limit: Optional[int] = None, offset: Optional[int] = None, refresh: Optional[bool] = None) -> Dict[str, Any]:
         """
         Ships currently in or near a port: every vessel the live map shows within radius_km
         of the port's position, nearest first, with position, speed, course, destination and
@@ -142,7 +142,7 @@ class MarinetrafficClient:
         """
         return self._get("/vessels", {"query": query, "limit": limit, "offset": offset, "refresh": refresh})
 
-    def vessels_imo(self, *, imo: str, refresh: Optional[bool] = None) -> Dict[str, Any]:
+    def vessels_by_imo(self, *, imo: str, refresh: Optional[bool] = None) -> Dict[str, Any]:
         """
         Registry details of one vessel: name, IMO, MMSI, call sign, flag, type, commercial
         market and size class, length and width. Build year is not public on the site (login
@@ -158,7 +158,7 @@ class MarinetrafficClient:
         """
         return self._get("/vessels/{imo}", {"imo": imo, "refresh": refresh})
 
-    def vessels_imo_position(self, *, imo: str, refresh: Optional[bool] = None) -> Dict[str, Any]:
+    def vessels_position_by_imo(self, *, imo: str, refresh: Optional[bool] = None) -> Dict[str, Any]:
         """
         Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational
         status, time of report) with its voyage: reported destination, ETA, departure and

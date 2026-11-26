@@ -35,7 +35,7 @@ export interface PortsParams {
   "refresh"?: boolean;
 }
 
-export interface PortsPortParams {
+export interface PortsByPortParams {
   /**
    * UN/LOCODE (e.g. NLRTM) or MarineTraffic port id (e.g. 2036, the port_id of /ports)
    */
@@ -46,7 +46,7 @@ export interface PortsPortParams {
   "refresh"?: boolean;
 }
 
-export interface PortsPortVesselsParams {
+export interface PortsVesselsByPortParams {
   /**
    * UN/LOCODE or MarineTraffic port id
    */
@@ -116,7 +116,7 @@ export interface VesselsParams {
   "refresh"?: boolean;
 }
 
-export interface VesselsImoParams {
+export interface VesselsByImoParams {
   /**
    * 7-digit IMO number, 9-digit MMSI, or shipid:<id> (the `ref` of a list row, for
    * vessels with no IMO)
@@ -128,7 +128,7 @@ export interface VesselsImoParams {
   "refresh"?: boolean;
 }
 
-export interface VesselsImoPositionParams {
+export interface VesselsPositionByImoParams {
   /**
    * 7-digit IMO number, 9-digit MMSI, or shipid:<id>
    */
@@ -170,7 +170,7 @@ export declare class MarinetrafficClient {
    *   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
    *     minutes)
    */
-  portsPort(params: PortsPortParams): Promise<Record<string, any>>;
+  portsByPort(params: PortsByPortParams): Promise<Record<string, any>>;
   /**
    * Ships currently in or near a port: every vessel the live map shows within radius_km
    * of the port's position, nearest first, with position, speed, course, destination and
@@ -191,7 +191,7 @@ export declare class MarinetrafficClient {
    *   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
    *     minutes)
    */
-  portsPortVessels(params: PortsPortVesselsParams): Promise<Record<string, any>>;
+  portsVesselsByPort(params: PortsVesselsByPortParams): Promise<Record<string, any>>;
   /**
    * One call from free text to the live picture. kind=vessel: resolves an IMO, MMSI or
    * exact vessel name and returns its details and latest position. kind=port: resolves a
@@ -238,7 +238,7 @@ export declare class MarinetrafficClient {
    *   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
    *     minutes)
    */
-  vesselsImo(params: VesselsImoParams): Promise<Record<string, any>>;
+  vesselsByImo(params: VesselsByImoParams): Promise<Record<string, any>>;
   /**
    * Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational
    * status, time of report) with its voyage: reported destination, ETA, departure and
@@ -251,5 +251,5 @@ export declare class MarinetrafficClient {
    *   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
    *     minutes)
    */
-  vesselsImoPosition(params: VesselsImoPositionParams): Promise<Record<string, any>>;
+  vesselsPositionByImo(params: VesselsPositionByImoParams): Promise<Record<string, any>>;
 }

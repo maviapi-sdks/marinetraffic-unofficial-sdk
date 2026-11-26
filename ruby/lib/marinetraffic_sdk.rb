@@ -60,7 +60,7 @@ module MarinetrafficSdk
     #     2036, the port_id of /ports)
     #   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
     #     minutes)
-    def ports_port(**params)
+    def ports_by_port(**params)
       get("/ports/{port}", params, %w[port])
     end
 
@@ -82,7 +82,7 @@ module MarinetrafficSdk
     #   offset (integer): Rows to skip
     #   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
     #     minutes)
-    def ports_port_vessels(**params)
+    def ports_vessels_by_port(**params)
       get("/ports/{port}/vessels", params, %w[port])
     end
 
@@ -132,7 +132,7 @@ module MarinetrafficSdk
     #     `ref` of a list row, for vessels with no IMO)
     #   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
     #     minutes)
-    def vessels_imo(**params)
+    def vessels_by_imo(**params)
       get("/vessels/{imo}", params, %w[imo])
     end
 
@@ -146,7 +146,7 @@ module MarinetrafficSdk
     #   imo (string, required): 7-digit IMO number, 9-digit MMSI, or shipid:<id>
     #   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
     #     minutes)
-    def vessels_imo_position(**params)
+    def vessels_position_by_imo(**params)
       get("/vessels/{imo}/position", params, %w[imo])
     end
 

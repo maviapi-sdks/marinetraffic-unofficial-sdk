@@ -79,6 +79,26 @@
         "responses": {
           "200": {
             "description": "The data, as JSON.",
+            "headers": {
+              "RateLimit-Limit": {
+                "description": "Requests the key may make in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Remaining": {
+                "description": "Requests left in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Reset": {
+                "description": "Seconds until the window starts again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -287,7 +307,7 @@
     },
     "/ports/{port}": {
       "get": {
-        "operationId": "portsPort",
+        "operationId": "portsByPort",
         "summary": "Port details",
         "description": "Details of one port: name, UN/LOCODE, country, type, size, coordinates, time zone, other names and its anchorages.\n\nEach successful request uses 10 credits.",
         "x-credits": 10,
@@ -317,6 +337,26 @@
         "responses": {
           "200": {
             "description": "The data, as JSON.",
+            "headers": {
+              "RateLimit-Limit": {
+                "description": "Requests the key may make in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Remaining": {
+                "description": "Requests left in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Reset": {
+                "description": "Seconds until the window starts again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -517,7 +557,7 @@
     },
     "/ports/{port}/vessels": {
       "get": {
-        "operationId": "portsPortVessels",
+        "operationId": "portsVesselsByPort",
         "summary": "Vessels in or near a port",
         "description": "Ships currently in or near a port: every vessel the live map shows within radius_km of the port's position, nearest first, with position, speed, course, destination and size. `complete` is false only if part of the area could not be read.\n\nEach successful request uses 10 credits.",
         "x-credits": 10,
@@ -615,6 +655,26 @@
         "responses": {
           "200": {
             "description": "The data, as JSON.",
+            "headers": {
+              "RateLimit-Limit": {
+                "description": "Requests the key may make in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Remaining": {
+                "description": "Requests left in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Reset": {
+                "description": "Seconds until the window starts again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -998,6 +1058,26 @@
         "responses": {
           "200": {
             "description": "The data, as JSON.",
+            "headers": {
+              "RateLimit-Limit": {
+                "description": "Requests the key may make in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Remaining": {
+                "description": "Requests left in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Reset": {
+                "description": "Seconds until the window starts again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1850,6 +1930,26 @@
         "responses": {
           "200": {
             "description": "The data, as JSON.",
+            "headers": {
+              "RateLimit-Limit": {
+                "description": "Requests the key may make in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Remaining": {
+                "description": "Requests left in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Reset": {
+                "description": "Seconds until the window starts again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -2117,7 +2217,7 @@
     },
     "/vessels/{imo}": {
       "get": {
-        "operationId": "vesselsImo",
+        "operationId": "vesselsByImo",
         "summary": "Vessel details",
         "description": "Registry details of one vessel: name, IMO, MMSI, call sign, flag, type, commercial market and size class, length and width. Build year is not public on the site (login only) and is not returned.\n\nEach successful request uses 10 credits.",
         "x-credits": 10,
@@ -2147,6 +2247,26 @@
         "responses": {
           "200": {
             "description": "The data, as JSON.",
+            "headers": {
+              "RateLimit-Limit": {
+                "description": "Requests the key may make in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Remaining": {
+                "description": "Requests left in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Reset": {
+                "description": "Seconds until the window starts again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -2339,7 +2459,7 @@
     },
     "/vessels/{imo}/position": {
       "get": {
-        "operationId": "vesselsImoPosition",
+        "operationId": "vesselsPositionByImo",
         "summary": "Vessel position",
         "description": "Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational status, time of report) with its voyage: reported destination, ETA, departure and arrival ports.\n\nEach successful request uses 10 credits.",
         "x-credits": 10,
@@ -2369,6 +2489,26 @@
         "responses": {
           "200": {
             "description": "The data, as JSON.",
+            "headers": {
+              "RateLimit-Limit": {
+                "description": "Requests the key may make in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Remaining": {
+                "description": "Requests left in the current window.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "RateLimit-Reset": {
+                "description": "Seconds until the window starts again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -2680,7 +2820,8 @@
         "type": "object",
         "required": [
           "error",
-          "message"
+          "message",
+          "retryable"
         ],
         "properties": {
           "error": {
@@ -2690,6 +2831,10 @@
           "message": {
             "type": "string",
             "description": "What went wrong, in a sentence."
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the same request may succeed later without any change. When true, wait the seconds in `Retry-After` (if sent) first."
           }
         }
       }
@@ -2704,7 +2849,8 @@
             },
             "example": {
               "error": "bad_request",
-              "message": "Missing required query parameter: q"
+              "message": "Missing required query parameter: q",
+              "retryable": false
             }
           }
         }
@@ -2718,7 +2864,8 @@
             },
             "example": {
               "error": "missing_api_key",
-              "message": "Provide an API key via the Authorization: Bearer <key> header."
+              "message": "Provide an API key via the Authorization: Bearer <key> header.",
+              "retryable": false
             }
           }
         }
@@ -2732,7 +2879,8 @@
             },
             "example": {
               "error": "credit_limit_reached",
-              "message": "You've used all 1,000 credits in your Free plan for this period. Upgrade your plan for a higher allotment."
+              "message": "You've used all 1,000 credits in your Free plan for this period. Upgrade your plan for a higher allotment.",
+              "retryable": false
             }
           }
         }
@@ -2746,13 +2894,14 @@
             },
             "example": {
               "error": "account_banned",
-              "message": "Your account is suspended."
+              "message": "Your account is suspended.",
+              "retryable": false
             }
           }
         }
       },
       "RateLimited": {
-        "description": "Too many requests for this key. Wait the number of seconds in `Retry-After`.",
+        "description": "Too many requests for this key (`rate_limited`), or too many at once for its plan (`concurrency_limited`). Wait the number of seconds in `Retry-After`.",
         "headers": {
           "Retry-After": {
             "description": "Seconds to wait before retrying.",
@@ -2768,13 +2917,22 @@
             },
             "example": {
               "error": "rate_limited",
-              "message": "Rate limit exceeded for this API key."
+              "message": "Rate limit exceeded for this API key (600 requests a minute).",
+              "retryable": true
             }
           }
         }
       },
       "UpstreamFailed": {
         "description": "The source site could not be read this time. Retrying later usually works.",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds to wait before retrying.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        },
         "content": {
           "application/json": {
             "schema": {
@@ -2782,7 +2940,8 @@
             },
             "example": {
               "error": "scrape_failed",
-              "message": "The upstream source could not be fetched"
+              "message": "The upstream source could not be fetched",
+              "retryable": true
             }
           }
         }

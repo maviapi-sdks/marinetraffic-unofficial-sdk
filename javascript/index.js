@@ -46,7 +46,7 @@ export class MarinetrafficClient {
    *
    * Each successful request uses 10 credits.
    */
-  portsPort(params) {
+  portsByPort(params) {
     return this.request("/ports/{port}", params, ["port"]);
   }
 
@@ -57,7 +57,7 @@ export class MarinetrafficClient {
    *
    * Each successful request uses 10 credits.
    */
-  portsPortVessels(params) {
+  portsVesselsByPort(params) {
     return this.request("/ports/{port}/vessels", params, ["port"]);
   }
 
@@ -92,7 +92,7 @@ export class MarinetrafficClient {
    *
    * Each successful request uses 10 credits.
    */
-  vesselsImo(params) {
+  vesselsByImo(params) {
     return this.request("/vessels/{imo}", params, ["imo"]);
   }
 
@@ -103,7 +103,7 @@ export class MarinetrafficClient {
    *
    * Each successful request uses 10 credits.
    */
-  vesselsImoPosition(params) {
+  vesselsPositionByImo(params) {
     return this.request("/vessels/{imo}/position", params, ["imo"]);
   }
 

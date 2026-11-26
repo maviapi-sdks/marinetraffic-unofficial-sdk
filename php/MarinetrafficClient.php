@@ -73,7 +73,7 @@ class MarinetrafficClient
      *
      * @return array<string, mixed>
      */
-    public function portsPort(string $port, ?bool $refresh = null): array
+    public function portsByPort(string $port, ?bool $refresh = null): array
     {
         return $this->get('/ports/{port}', ['port' => $port, 'refresh' => $refresh]);
     }
@@ -100,7 +100,7 @@ class MarinetrafficClient
      *
      * @return array<string, mixed>
      */
-    public function portsPortVessels(string $port, ?float $radius_km = null, ?string $vessel_type = null, ?bool $moving = null, ?int $limit = null, ?int $offset = null, ?bool $refresh = null): array
+    public function portsVesselsByPort(string $port, ?float $radius_km = null, ?string $vessel_type = null, ?bool $moving = null, ?int $limit = null, ?int $offset = null, ?bool $refresh = null): array
     {
         return $this->get('/ports/{port}/vessels', ['port' => $port, 'radius_km' => $radius_km, 'vessel_type' => $vessel_type, 'moving' => $moving, 'limit' => $limit, 'offset' => $offset, 'refresh' => $refresh]);
     }
@@ -165,7 +165,7 @@ class MarinetrafficClient
      *
      * @return array<string, mixed>
      */
-    public function vesselsImo(string $imo, ?bool $refresh = null): array
+    public function vesselsByImo(string $imo, ?bool $refresh = null): array
     {
         return $this->get('/vessels/{imo}', ['imo' => $imo, 'refresh' => $refresh]);
     }
@@ -184,7 +184,7 @@ class MarinetrafficClient
      *
      * @return array<string, mixed>
      */
-    public function vesselsImoPosition(string $imo, ?bool $refresh = null): array
+    public function vesselsPositionByImo(string $imo, ?bool $refresh = null): array
     {
         return $this->get('/vessels/{imo}/position', ['imo' => $imo, 'refresh' => $refresh]);
     }
