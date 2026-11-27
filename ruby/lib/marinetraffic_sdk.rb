@@ -33,119 +33,127 @@ module MarinetrafficSdk
       @timeout = timeout
     end
 
-    # Search ports, anchorages and offshore terminals by name or UN/LOCODE, with country,
-    # UN/LOCODE and coordinates. The site returns at most about 12 matches per query and
-    # has no paging.
+    # Ports, anchorages and offshore terminals whose name or UN/LOCODE matches the text,
+    # in the site's relevance order (the site returns at most about 12 matches). Each row
+    # has the port id, name, type, country, UN/LOCODE, coordinates, size and the name or
+    # code it matched on.
     #
-    # Each successful request uses 10 credits for every 12 rows it returns (at least 10
-    # credits).
+    # Each successful request uses 5 credits.
     #
     # Parameters:
-    #   query (string, required): Port name (at least 3 characters) or UN/LOCODE
-    #   limit (integer): Rows per page (default 50, max 200)
-    #   offset (integer): Rows to skip
-    #   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
-    #     minutes)
+    #   query (string): port name (at least 3 characters) or UN/LOCODE, e.g. "rotterdam"
+    #     or "NLRTM"
+    #   limit (integer): Rows in one page, 1 to 200 (default 50)
+    #   offset (integer): Rows to skip before the page starts (default 0)
+    #   undefined (string)
+    #   undefined (string)
+    #   undefined (string)
     def ports(**params)
-      get("/ports", params, %w[query])
+      get("/ports", params, %w[])
     end
 
-    # Details of one port: name, UN/LOCODE, country, type, size, coordinates, time zone,
-    # other names and its anchorages.
+    # Details of one port: name, UN/LOCODE, country, type, size, coordinates, UTC offset
+    # in hours, alternative names, its anchorages, related ports and the site's
+    # one-paragraph summary.
     #
-    # Each successful request uses 10 credits.
+    # Each successful request uses 5 credits.
     #
     # Parameters:
     #   port (string, required): UN/LOCODE (e.g. NLRTM) or MarineTraffic port id (e.g.
     #     2036, the port_id of /ports)
-    #   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
-    #     minutes)
+    #   undefined (string)
     def ports_by_port(**params)
       get("/ports/{port}", params, %w[port])
     end
 
-    # Ships currently in or near a port: every vessel the live map shows within radius_km
-    # of the port's position, nearest first, with position, speed, course, destination and
-    # size. `complete` is false only if part of the area could not be read.
+    # Ships currently in or near a port: every identified vessel the live map shows within
+    # radius_km of the port's position (anonymous [SAT-AIS] placeholders left out),
+    # nearest first, with position, distance, speed, course, heading, AIS destination,
+    # size, deadweight and the age of the position. `complete` is false only if part of
+    # the area could not be read; `map_requests` is how many map tiles were read.
     #
-    # Each successful request uses 10 credits.
+    # Each successful request uses 5 credits.
     #
     # Parameters:
-    #   port (string, required): UN/LOCODE or MarineTraffic port id
-    #   radius_km (number): Search radius around the port position, 0.5 to 15 km
-    #   vessel_type (string): Only vessels of this map category. One of: cargo, tanker,
+    #   port (string, required): UN/LOCODE (e.g. NLRTM) or MarineTraffic port id
+    #   radius_km (number): search radius around the port position, 0.5 to 15 km
+    #   vessel_type (string): only vessels of this map category (cargo, tanker,
     #     passenger, fishing, tug_special, high_speed, pleasure, navigation_aid,
-    #     unspecified
-    #   moving (boolean): true: only vessels moving at 1 knot or more; false: only
+    #     unspecified)
+    #   moving (string): true for only vessels moving at 1 knot or more, false for only
     #     vessels stopped or moored
-    #   limit (integer): Rows per page (default 50, max 200)
-    #   offset (integer): Rows to skip
-    #   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
-    #     minutes)
+    #   limit (integer): Rows in one page, 1 to 200 (default 50)
+    #   offset (integer): Rows to skip before the page starts (default 0)
+    #   undefined (string)
+    #   undefined (string)
+    #   undefined (string)
     def ports_vessels_by_port(**params)
       get("/ports/{port}/vessels", params, %w[port])
     end
 
-    # One call from free text to the live picture. kind=vessel: resolves an IMO, MMSI or
-    # exact vessel name and returns its details and latest position. kind=port: resolves a
-    # UN/LOCODE or exact port name and returns its details and the nearest vessels within
-    # 5 km. An ambiguous name answers 400 with candidates.
+    # From free text to the live picture. kind=vessel: resolves an IMO, MMSI or exact
+    # vessel name and returns the vessel's details (`vessel`) and latest position with
+    # voyage (`position`). kind=port: resolves a UN/LOCODE or exact port name and returns
+    # the port's details (`port`) and the nearest vessels within 5 km (`vessels`, nearest
+    # first). `resolved` says what the text was resolved to. A name matching several
+    # vessels or ports is refused as ambiguous, with the candidates listed in the error.
     #
-    # Each successful request uses 10 credits.
+    # Each successful request uses 5 credits.
     #
     # Parameters:
-    #   query (string, required): Vessel name/IMO/MMSI, or port name/UN/LOCODE
-    #   kind (string): What to resolve the text to. One of: vessel, port
+    #   query (string): vessel name, IMO or MMSI (kind=vessel), or port name or
+    #     UN/LOCODE (kind=port)
+    #   kind (string): what to resolve the text to: vessel or port. One of: vessel, port
     #   nearby (integer): kind=port: how many nearby vessels to include (0 to 50)
-    #   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
-    #     minutes)
+    #   undefined (string)
     def track(**params)
-      get("/track", params, %w[query])
+      get("/track", params, %w[])
     end
 
-    # Search vessels by name, IMO or MMSI. Each match carries its particulars (IMO, MMSI,
-    # call sign, flag, type, size). The site returns at most 12 matches per query and has
-    # no paging: use a fuller name, or the IMO/MMSI, to reach a specific vessel.
+    # Vessels whose name (current or former), IMO or MMSI matches the text, in the site's
+    # relevance order (at most 12; use a fuller name or the IMO/MMSI to reach a specific
+    # vessel). Each row carries the vessel's particulars: ship id, IMO, MMSI, call sign,
+    # flag, type, market, size class, length and width, plus the name or number it matched
+    # on.
     #
-    # Each successful request uses 10 credits for every 12 rows it returns (at least 10
-    # credits).
+    # Each successful request uses 5 credits.
     #
     # Parameters:
-    #   query (string, required): Vessel name (at least 3 characters), IMO number or
-    #     MMSI
-    #   limit (integer): Rows per page (default 50, max 200)
-    #   offset (integer): Rows to skip
-    #   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
-    #     minutes)
+    #   query (string): vessel name (at least 3 characters), IMO number or MMSI
+    #   limit (integer): Rows in one page, 1 to 200 (default 50)
+    #   offset (integer): Rows to skip before the page starts (default 0)
+    #   undefined (string)
+    #   undefined (string)
+    #   undefined (string)
     def vessels(**params)
-      get("/vessels", params, %w[query])
+      get("/vessels", params, %w[])
     end
 
-    # Registry details of one vessel: name, IMO, MMSI, call sign, flag, type, commercial
-    # market and size class, length and width. Build year is not public on the site (login
-    # only) and is not returned.
+    # Registry details of one vessel: name, AIS name, IMO, MMSI, call sign, flag, type,
+    # AIS type, commercial market and size class, length and width, AIS class, home port
+    # and the site's summary sentence. Build year is not public and is not returned.
     #
-    # Each successful request uses 10 credits.
+    # Each successful request uses 5 credits.
     #
     # Parameters:
     #   imo (string, required): 7-digit IMO number, 9-digit MMSI, or shipid:<id> (the
     #     `ref` of a list row, for vessels with no IMO)
-    #   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
-    #     minutes)
+    #   undefined (string)
     def vessels_by_imo(**params)
       get("/vessels/{imo}", params, %w[imo])
     end
 
-    # Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational
-    # status, time of report) with its voyage: reported destination, ETA, departure and
-    # arrival ports.
+    # Latest AIS position of one vessel (latitude/longitude, speed in knots, course,
+    # heading, rate of turn, draught, navigational status, sea area, report time in UTC
+    # and its age, reception type) with its voyage: destination reported over AIS, ETA,
+    # progress, departure port and time, arrival port and time (actual once arrived, else
+    # estimated).
     #
-    # Each successful request uses 10 credits.
+    # Each successful request uses 5 credits.
     #
     # Parameters:
     #   imo (string, required): 7-digit IMO number, 9-digit MMSI, or shipid:<id>
-    #   refresh (boolean): Bypass and repopulate the cache (answers are cached for 5
-    #     minutes)
+    #   undefined (string)
     def vessels_position_by_imo(**params)
       get("/vessels/{imo}/position", params, %w[imo])
     end

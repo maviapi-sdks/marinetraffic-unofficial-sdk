@@ -29,79 +29,87 @@ export class MarinetrafficClient {
   }
 
   /**
-   * Search ports, anchorages and offshore terminals by name or UN/LOCODE, with country,
-   * UN/LOCODE and coordinates. The site returns at most about 12 matches per query and
-   * has no paging.
+   * Ports, anchorages and offshore terminals whose name or UN/LOCODE matches the text,
+   * in the site's relevance order (the site returns at most about 12 matches). Each row
+   * has the port id, name, type, country, UN/LOCODE, coordinates, size and the name or
+   * code it matched on.
    *
-   * Each successful request uses 10 credits for every 12 rows it returns (at least 10
-   * credits).
+   * Each successful request uses 5 credits.
    */
-  ports(params) {
-    return this.request("/ports", params, ["query"]);
+  ports(params = {}) {
+    return this.request("/ports", params, []);
   }
 
   /**
-   * Details of one port: name, UN/LOCODE, country, type, size, coordinates, time zone,
-   * other names and its anchorages.
+   * Details of one port: name, UN/LOCODE, country, type, size, coordinates, UTC offset
+   * in hours, alternative names, its anchorages, related ports and the site's
+   * one-paragraph summary.
    *
-   * Each successful request uses 10 credits.
+   * Each successful request uses 5 credits.
    */
   portsByPort(params) {
     return this.request("/ports/{port}", params, ["port"]);
   }
 
   /**
-   * Ships currently in or near a port: every vessel the live map shows within radius_km
-   * of the port's position, nearest first, with position, speed, course, destination and
-   * size. `complete` is false only if part of the area could not be read.
+   * Ships currently in or near a port: every identified vessel the live map shows within
+   * radius_km of the port's position (anonymous [SAT-AIS] placeholders left out),
+   * nearest first, with position, distance, speed, course, heading, AIS destination,
+   * size, deadweight and the age of the position. `complete` is false only if part of
+   * the area could not be read; `map_requests` is how many map tiles were read.
    *
-   * Each successful request uses 10 credits.
+   * Each successful request uses 5 credits.
    */
   portsVesselsByPort(params) {
     return this.request("/ports/{port}/vessels", params, ["port"]);
   }
 
   /**
-   * One call from free text to the live picture. kind=vessel: resolves an IMO, MMSI or
-   * exact vessel name and returns its details and latest position. kind=port: resolves a
-   * UN/LOCODE or exact port name and returns its details and the nearest vessels within
-   * 5 km. An ambiguous name answers 400 with candidates.
+   * From free text to the live picture. kind=vessel: resolves an IMO, MMSI or exact
+   * vessel name and returns the vessel's details (`vessel`) and latest position with
+   * voyage (`position`). kind=port: resolves a UN/LOCODE or exact port name and returns
+   * the port's details (`port`) and the nearest vessels within 5 km (`vessels`, nearest
+   * first). `resolved` says what the text was resolved to. A name matching several
+   * vessels or ports is refused as ambiguous, with the candidates listed in the error.
    *
-   * Each successful request uses 10 credits.
+   * Each successful request uses 5 credits.
    */
-  track(params) {
-    return this.request("/track", params, ["query"]);
+  track(params = {}) {
+    return this.request("/track", params, []);
   }
 
   /**
-   * Search vessels by name, IMO or MMSI. Each match carries its particulars (IMO, MMSI,
-   * call sign, flag, type, size). The site returns at most 12 matches per query and has
-   * no paging: use a fuller name, or the IMO/MMSI, to reach a specific vessel.
+   * Vessels whose name (current or former), IMO or MMSI matches the text, in the site's
+   * relevance order (at most 12; use a fuller name or the IMO/MMSI to reach a specific
+   * vessel). Each row carries the vessel's particulars: ship id, IMO, MMSI, call sign,
+   * flag, type, market, size class, length and width, plus the name or number it matched
+   * on.
    *
-   * Each successful request uses 10 credits for every 12 rows it returns (at least 10
-   * credits).
+   * Each successful request uses 5 credits.
    */
-  vessels(params) {
-    return this.request("/vessels", params, ["query"]);
+  vessels(params = {}) {
+    return this.request("/vessels", params, []);
   }
 
   /**
-   * Registry details of one vessel: name, IMO, MMSI, call sign, flag, type, commercial
-   * market and size class, length and width. Build year is not public on the site (login
-   * only) and is not returned.
+   * Registry details of one vessel: name, AIS name, IMO, MMSI, call sign, flag, type,
+   * AIS type, commercial market and size class, length and width, AIS class, home port
+   * and the site's summary sentence. Build year is not public and is not returned.
    *
-   * Each successful request uses 10 credits.
+   * Each successful request uses 5 credits.
    */
   vesselsByImo(params) {
     return this.request("/vessels/{imo}", params, ["imo"]);
   }
 
   /**
-   * Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational
-   * status, time of report) with its voyage: reported destination, ETA, departure and
-   * arrival ports.
+   * Latest AIS position of one vessel (latitude/longitude, speed in knots, course,
+   * heading, rate of turn, draught, navigational status, sea area, report time in UTC
+   * and its age, reception type) with its voyage: destination reported over AIS, ETA,
+   * progress, departure port and time, arrival port and time (actual once arrived, else
+   * estimated).
    *
-   * Each successful request uses 10 credits.
+   * Each successful request uses 5 credits.
    */
   vesselsPositionByImo(params) {
     return this.request("/vessels/{imo}/position", params, ["imo"]);

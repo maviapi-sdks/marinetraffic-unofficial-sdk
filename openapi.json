@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "MarineTraffic API",
-    "version": "2026-11-21",
-    "description": "Vessel and port data from MarineTraffic: search vessels by name, IMO or MMSI; vessel particulars; latest AIS position and voyage (destination, ETA); port search and details; and the ships in or near a port.\n\nEvery request needs an API key in the `Authorization: Bearer <key>` header. Create one at https://maviapi.com/dashboard/keys. A successful request uses one credit, unless its operation says more (`x-credits`). That price covers 200 rows (or the operation's `x-credits-rows`); a request that returns more pays it again for each further page of that many rows. The `x-maviapi-credits` response header says what a request cost.\n\nEndpoint reference with live examples: https://maviapi.com/apis/marinetraffic",
+    "version": "2026-11-27",
+    "description": "Vessel and port data from MarineTraffic: search vessels by name, IMO or MMSI; vessel particulars; latest AIS position and voyage (destination, ETA); port search and details; and the ships in or near a port.\n\nEvery request needs an API key in the `Authorization: Bearer <key>` header. Create one at https://maviapi.com/dashboard/keys. A successful request uses one credit, unless its operation says more (`x-credits`). That price covers 200 rows (or the operation's `x-credits-rows`); a request that returns more pays it again for each further page of that many rows. The `x-maviapi-credits` response header says what a request cost. A query param an operation does not take is ignored and named in the `x-maviapi-unknown-params` response header; send the `x-maviapi-strict: 1` request header to have such a request refused with a free `400 unknown_param` instead.\n\nEndpoint reference with live examples: https://maviapi.com/apis/marinetraffic",
     "termsOfService": "https://maviapi.com/terms"
   },
   "externalDocs": {
@@ -24,18 +24,18 @@
     "/ports": {
       "get": {
         "operationId": "ports",
-        "summary": "Search ports",
-        "description": "Search ports, anchorages and offshore terminals by name or UN/LOCODE, with country, UN/LOCODE and coordinates. The site returns at most about 12 matches per query and has no paging.\n\nEach successful request uses 10 credits for every 12 rows it returns (at least 10 credits).",
-        "x-credits": 10,
-        "x-credits-rows": 12,
+        "summary": "Ports",
+        "description": "Ports, anchorages and offshore terminals whose name or UN/LOCODE matches the text, in the site's relevance order (the site returns at most about 12 matches). Each row has the port id, name, type, country, UN/LOCODE, coordinates, size and the name or code it matched on.\n\nEach successful request uses 5 credits.",
+        "x-credits": 5,
         "parameters": [
           {
             "name": "query",
             "in": "query",
-            "required": true,
-            "description": "Port name (at least 3 characters) or UN/LOCODE",
+            "required": false,
+            "description": "port name (at least 3 characters) or UN/LOCODE, e.g. \"rotterdam\" or \"NLRTM\"",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "rotterdam"
             },
             "example": "rotterdam"
           },
@@ -43,37 +43,33 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "Rows per page (default 50, max 200)",
+            "description": "Rows in one page, 1 to 200 (default 50).",
             "schema": {
               "type": "integer",
-              "default": 50,
               "minimum": 1,
-              "maximum": 200
-            },
-            "example": 50
+              "maximum": 200,
+              "default": 50
+            }
           },
           {
             "name": "offset",
             "in": "query",
             "required": false,
-            "description": "Rows to skip",
+            "description": "Rows to skip before the page starts (default 0).",
             "schema": {
               "type": "integer",
-              "default": 0,
-              "minimum": 0
-            },
-            "example": 0
+              "minimum": 0,
+              "default": 0
+            }
           },
           {
-            "name": "refresh",
-            "in": "query",
-            "required": false,
-            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "example": false
+            "$ref": "#/components/parameters/Fields"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/MaxAge"
           }
         ],
         "responses": {
@@ -97,6 +93,25 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "x-maviapi-unknown-params": {
+                "description": "Query params this endpoint does not take, comma separated; they were ignored. Send `x-maviapi-strict: 1` to get a free `400 unknown_param` instead.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Age": {
+                "description": "Seconds since the data was read from the site, as the body's `age`.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-maviapi-fetched-at": {
+                "description": "When the data was read from the site (ISO 8601, UTC), as the body's `fetched_at`.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
               }
             },
             "content": {
@@ -105,10 +120,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "type": [
-                        "object",
-                        "null"
-                      ],
+                      "type": "object",
                       "properties": {
                         "query": {
                           "type": [
@@ -214,72 +226,95 @@
                                   "string",
                                   "null"
                                 ],
-                                "example": "https://www.marinetraffic.com/en/ais/details/ports/2036",
-                                "format": "uri"
+                                "example": "https://www.marinetraffic.com/en/ais/details/ports/2036"
                               }
                             }
                           }
-                        }
-                      }
-                    },
-                    "cached": {
-                      "type": [
-                        "boolean",
-                        "null"
-                      ],
-                      "example": false
-                    },
-                    "source": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "example": "marinetraffic:web"
-                    },
-                    "pagination": {
-                      "type": [
-                        "object",
-                        "null"
-                      ],
-                      "properties": {
-                        "total": {
+                        },
+                        "pagination": {
                           "type": [
-                            "integer",
+                            "object",
                             "null"
                           ],
-                          "example": 182
+                          "properties": {
+                            "count": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ],
+                              "example": 7
+                            },
+                            "has_more": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ],
+                              "example": false
+                            },
+                            "next_cursor": {
+                              "type": "null",
+                              "example": null
+                            }
+                          }
                         },
-                        "limit": {
+                        "fetched_at": {
                           "type": [
-                            "integer",
+                            "string",
                             "null"
                           ],
-                          "example": 50
+                          "example": "2026-11-27T10:13:03.176Z"
                         },
-                        "offset": {
+                        "age": {
                           "type": [
                             "integer",
                             "null"
                           ],
                           "example": 0
-                        },
-                        "count": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
-                          "example": 50
-                        },
-                        "has_more": {
-                          "type": [
-                            "boolean",
-                            "null"
-                          ],
-                          "example": true
                         }
                       }
+                    },
+                    "cached": {
+                      "type": "boolean",
+                      "description": "Whether this answer was served from the stored copy."
+                    },
+                    "source": {
+                      "description": "Where the data was read from."
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "offset": {
+                          "type": "integer"
+                        },
+                        "count": {
+                          "type": "integer"
+                        },
+                        "has_more": {
+                          "type": "boolean"
+                        },
+                        "next_cursor": {
+                          "$ref": "#/components/schemas/NextCursor"
+                        }
+                      }
+                    },
+                    "fetched_at": {
+                      "$ref": "#/components/schemas/FetchedAt"
+                    },
+                    "age": {
+                      "$ref": "#/components/schemas/Age"
                     }
-                  }
+                  },
+                  "required": [
+                    "data",
+                    "cached",
+                    "source"
+                  ]
                 }
               }
             }
@@ -296,6 +331,9 @@
           "403": {
             "$ref": "#/components/responses/AccountSuspended"
           },
+          "410": {
+            "$ref": "#/components/responses/CursorExpired"
+          },
           "429": {
             "$ref": "#/components/responses/RateLimited"
           },
@@ -308,9 +346,9 @@
     "/ports/{port}": {
       "get": {
         "operationId": "portsByPort",
-        "summary": "Port details",
-        "description": "Details of one port: name, UN/LOCODE, country, type, size, coordinates, time zone, other names and its anchorages.\n\nEach successful request uses 10 credits.",
-        "x-credits": 10,
+        "summary": "Port",
+        "description": "Details of one port: name, UN/LOCODE, country, type, size, coordinates, UTC offset in hours, alternative names, its anchorages, related ports and the site's one-paragraph summary.\n\nEach successful request uses 5 credits.",
+        "x-credits": 5,
         "parameters": [
           {
             "name": "port",
@@ -323,15 +361,7 @@
             "example": "NLRTM"
           },
           {
-            "name": "refresh",
-            "in": "query",
-            "required": false,
-            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "example": false
+            "$ref": "#/components/parameters/MaxAge"
           }
         ],
         "responses": {
@@ -355,6 +385,25 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "x-maviapi-unknown-params": {
+                "description": "Query params this endpoint does not take, comma separated; they were ignored. Send `x-maviapi-strict: 1` to get a free `400 unknown_param` instead.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Age": {
+                "description": "Seconds since the data was read from the site, as the body's `age`.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-maviapi-fetched-at": {
+                "description": "When the data was read from the site (ISO 8601, UTC), as the body's `fetched_at`.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
               }
             },
             "content": {
@@ -363,10 +412,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "type": [
-                        "object",
-                        "null"
-                      ],
+                      "type": "object",
                       "properties": {
                         "port_id": {
                           "type": [
@@ -433,7 +479,7 @@
                         },
                         "utc_offset_hours": {
                           "type": [
-                            "number",
+                            "integer",
                             "null"
                           ],
                           "example": 1
@@ -445,7 +491,7 @@
                           ],
                           "items": {
                             "type": "string",
-                            "example": "EUROPOORT"
+                            "example": "MAASDIJK"
                           }
                         },
                         "anchorages": {
@@ -478,58 +524,83 @@
                             "array",
                             "null"
                           ],
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "port_id": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "example": "2033"
-                              },
-                              "name": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "example": "ROTTERDAM BOTLEK"
-                              }
-                            }
-                          }
+                          "items": {}
                         },
                         "summary": {
                           "type": [
                             "string",
                             "null"
                           ],
-                          "example": "ROTTERDAM is located at UK Coast & Atlantic, Rotterdam Area in NETHERLANDS. The official UN/LOCODE of this port is NLRTM."
+                          "example": "ROTTERDAM is located at UK Coast & Atlantic, Rotterdam Area in NETHERLANDS. The official UN/LOCODE of this port is NLRTM. It is also known as MAASDIJK,EUROPOORT,RDAM,DINTELHAVEN."
                         },
                         "url": {
                           "type": [
                             "string",
                             "null"
                           ],
-                          "example": "https://www.marinetraffic.com/en/ais/details/ports/2036",
-                          "format": "uri"
+                          "example": "https://www.marinetraffic.com/en/ais/details/ports/2036"
+                        },
+                        "pagination": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "count": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ],
+                              "example": 1
+                            },
+                            "has_more": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ],
+                              "example": false
+                            },
+                            "next_cursor": {
+                              "type": "null",
+                              "example": null
+                            }
+                          }
+                        },
+                        "fetched_at": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "2026-11-27T10:13:01.235Z"
+                        },
+                        "age": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 0
                         }
                       }
                     },
                     "cached": {
-                      "type": [
-                        "boolean",
-                        "null"
-                      ],
-                      "example": false
+                      "type": "boolean",
+                      "description": "Whether this answer was served from the stored copy."
                     },
                     "source": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "example": "marinetraffic:web"
+                      "description": "Where the data was read from."
+                    },
+                    "fetched_at": {
+                      "$ref": "#/components/schemas/FetchedAt"
+                    },
+                    "age": {
+                      "$ref": "#/components/schemas/Age"
                     }
-                  }
+                  },
+                  "required": [
+                    "data",
+                    "cached",
+                    "source"
+                  ]
                 }
               }
             }
@@ -558,15 +629,15 @@
     "/ports/{port}/vessels": {
       "get": {
         "operationId": "portsVesselsByPort",
-        "summary": "Vessels in or near a port",
-        "description": "Ships currently in or near a port: every vessel the live map shows within radius_km of the port's position, nearest first, with position, speed, course, destination and size. `complete` is false only if part of the area could not be read.\n\nEach successful request uses 10 credits.",
-        "x-credits": 10,
+        "summary": "Port Vessels",
+        "description": "Ships currently in or near a port: every identified vessel the live map shows within radius_km of the port's position (anonymous [SAT-AIS] placeholders left out), nearest first, with position, distance, speed, course, heading, AIS destination, size, deadweight and the age of the position. `complete` is false only if part of the area could not be read; `map_requests` is how many map tiles were read.\n\nEach successful request uses 5 credits.",
+        "x-credits": 5,
         "parameters": [
           {
             "name": "port",
             "in": "path",
             "required": true,
-            "description": "UN/LOCODE or MarineTraffic port id",
+            "description": "UN/LOCODE (e.g. NLRTM) or MarineTraffic port id",
             "schema": {
               "type": "string"
             },
@@ -576,12 +647,10 @@
             "name": "radius_km",
             "in": "query",
             "required": false,
-            "description": "Search radius around the port position, 0.5 to 15 km",
+            "description": "search radius around the port position, 0.5 to 15 km",
             "schema": {
               "type": "number",
-              "default": 5,
-              "minimum": 0.5,
-              "maximum": 15
+              "default": 5
             },
             "example": 5
           },
@@ -589,67 +658,76 @@
             "name": "vessel_type",
             "in": "query",
             "required": false,
-            "description": "Only vessels of this map category",
+            "description": "only vessels of this map category (cargo, tanker, passenger, fishing, tug_special, high_speed, pleasure, navigation_aid, unspecified)",
             "schema": {
-              "type": "string",
-              "enum": [
-                "cargo",
-                "tanker",
-                "passenger",
-                "fishing",
-                "tug_special",
-                "high_speed",
-                "pleasure",
-                "navigation_aid",
-                "unspecified"
+              "anyOf": [
+                {
+                  "enum": [
+                    "cargo",
+                    "tanker",
+                    "passenger",
+                    "fishing",
+                    "tug_special",
+                    "high_speed",
+                    "pleasure",
+                    "navigation_aid",
+                    "unspecified"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
               ]
-            },
-            "example": "cargo"
+            }
           },
           {
             "name": "moving",
             "in": "query",
             "required": false,
-            "description": "true: only vessels moving at 1 knot or more; false: only vessels stopped or moored",
+            "description": "true for only vessels moving at 1 knot or more, false for only vessels stopped or moored",
             "schema": {
-              "type": "boolean"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           {
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "Rows per page (default 50, max 200)",
+            "description": "Rows in one page, 1 to 200 (default 50).",
             "schema": {
               "type": "integer",
-              "default": 50,
               "minimum": 1,
-              "maximum": 200
-            },
-            "example": 50
+              "maximum": 200,
+              "default": 50
+            }
           },
           {
             "name": "offset",
             "in": "query",
             "required": false,
-            "description": "Rows to skip",
+            "description": "Rows to skip before the page starts (default 0).",
             "schema": {
               "type": "integer",
-              "default": 0,
-              "minimum": 0
-            },
-            "example": 0
+              "minimum": 0,
+              "default": 0
+            }
           },
           {
-            "name": "refresh",
-            "in": "query",
-            "required": false,
-            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "example": false
+            "$ref": "#/components/parameters/Fields"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/MaxAge"
           }
         ],
         "responses": {
@@ -673,6 +751,25 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "x-maviapi-unknown-params": {
+                "description": "Query params this endpoint does not take, comma separated; they were ignored. Send `x-maviapi-strict: 1` to get a free `400 unknown_param` instead.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Age": {
+                "description": "Seconds since the data was read from the site, as the body's `age`.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-maviapi-fetched-at": {
+                "description": "When the data was read from the site (ISO 8601, UTC), as the body's `fetched_at`.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
               }
             },
             "content": {
@@ -681,10 +778,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "type": [
-                        "object",
-                        "null"
-                      ],
+                      "type": "object",
                       "properties": {
                         "port": {
                           "type": [
@@ -738,25 +832,17 @@
                         },
                         "radius_km": {
                           "type": [
-                            "number",
+                            "integer",
                             "null"
                           ],
                           "example": 5
                         },
                         "vessel_type": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
-                          "nullable": true,
+                          "type": "null",
                           "example": null
                         },
                         "moving": {
-                          "type": [
-                            "boolean",
-                            "null"
-                          ],
-                          "nullable": true,
+                          "type": "null",
                           "example": null
                         },
                         "complete": {
@@ -771,14 +857,14 @@
                             "integer",
                             "null"
                           ],
-                          "example": 4
+                          "example": 16
                         },
                         "count": {
                           "type": [
                             "integer",
                             "null"
                           ],
-                          "example": 182
+                          "example": 188
                         },
                         "vessels": {
                           "type": [
@@ -793,21 +879,21 @@
                                   "string",
                                   "null"
                                 ],
-                                "example": "3387654"
+                                "example": "7183696"
                               },
                               "ref": {
                                 "type": [
                                   "string",
                                   "null"
                                 ],
-                                "example": "shipid:3387654"
+                                "example": "shipid:7183696"
                               },
                               "name": {
                                 "type": [
                                   "string",
                                   "null"
                                 ],
-                                "example": "SNIP"
+                                "example": "KRVE 87"
                               },
                               "flag_code": {
                                 "type": [
@@ -821,158 +907,170 @@
                                   "string",
                                   "null"
                                 ],
-                                "example": "cargo"
+                                "example": "tug_special"
                               },
                               "latitude": {
                                 "type": [
                                   "number",
                                   "null"
                                 ],
-                                "example": 51.952328
+                                "example": 51.948772
                               },
                               "longitude": {
                                 "type": [
                                   "number",
                                   "null"
                                 ],
-                                "example": 4.1202168
+                                "example": 4.1490202
                               },
                               "distance_km": {
                                 "type": [
                                   "number",
                                   "null"
                                 ],
-                                "example": 1.77
+                                "example": 0.78
                               },
                               "speed_knots": {
                                 "type": [
-                                  "number",
+                                  "integer",
                                   "null"
                                 ],
                                 "example": 0
                               },
                               "course": {
                                 "type": [
-                                  "number",
+                                  "integer",
                                   "null"
                                 ],
-                                "nullable": true,
-                                "example": null
+                                "example": 352
                               },
                               "heading": {
-                                "type": [
-                                  "number",
-                                  "null"
-                                ],
-                                "example": 169
+                                "type": "null",
+                                "example": null
                               },
                               "destination": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "example": "ROTTERDAM"
+                                "type": "null",
+                                "example": null
                               },
                               "length_m": {
                                 "type": [
-                                  "number",
+                                  "integer",
                                   "null"
                                 ],
-                                "example": 64
+                                "example": 16
                               },
                               "width_m": {
                                 "type": [
-                                  "number",
+                                  "integer",
                                   "null"
                                 ],
-                                "example": 7
+                                "example": 5
                               },
                               "dwt": {
-                                "type": [
-                                  "number",
-                                  "null"
-                                ],
-                                "nullable": true,
-                                "example": 1200
+                                "type": "null",
+                                "example": null
                               },
                               "position_age_minutes": {
                                 "type": [
                                   "integer",
                                   "null"
                                 ],
-                                "example": 2
+                                "example": 3
                               },
                               "timestamp": {
                                 "type": [
                                   "string",
                                   "null"
                                 ],
-                                "example": "2026-11-21T06:40:00.000Z",
-                                "format": "date-time"
+                                "example": "2026-11-27T10:10:00.000Z"
                               }
                             }
                           }
-                        }
-                      }
-                    },
-                    "cached": {
-                      "type": [
-                        "boolean",
-                        "null"
-                      ],
-                      "example": false
-                    },
-                    "source": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "example": "marinetraffic:web"
-                    },
-                    "pagination": {
-                      "type": [
-                        "object",
-                        "null"
-                      ],
-                      "properties": {
-                        "total": {
+                        },
+                        "pagination": {
                           "type": [
-                            "integer",
+                            "object",
                             "null"
                           ],
-                          "example": 182
+                          "properties": {
+                            "count": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ],
+                              "example": 188
+                            },
+                            "has_more": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ],
+                              "example": false
+                            },
+                            "next_cursor": {
+                              "type": "null",
+                              "example": null
+                            }
+                          }
                         },
-                        "limit": {
+                        "fetched_at": {
                           "type": [
-                            "integer",
+                            "string",
                             "null"
                           ],
-                          "example": 50
+                          "example": "2026-11-27T10:13:39.455Z"
                         },
-                        "offset": {
+                        "age": {
                           "type": [
                             "integer",
                             "null"
                           ],
                           "example": 0
-                        },
-                        "count": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
-                          "example": 50
-                        },
-                        "has_more": {
-                          "type": [
-                            "boolean",
-                            "null"
-                          ],
-                          "example": true
                         }
                       }
+                    },
+                    "cached": {
+                      "type": "boolean",
+                      "description": "Whether this answer was served from the stored copy."
+                    },
+                    "source": {
+                      "description": "Where the data was read from."
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "offset": {
+                          "type": "integer"
+                        },
+                        "count": {
+                          "type": "integer"
+                        },
+                        "has_more": {
+                          "type": "boolean"
+                        },
+                        "next_cursor": {
+                          "$ref": "#/components/schemas/NextCursor"
+                        }
+                      }
+                    },
+                    "fetched_at": {
+                      "$ref": "#/components/schemas/FetchedAt"
+                    },
+                    "age": {
+                      "$ref": "#/components/schemas/Age"
                     }
-                  }
+                  },
+                  "required": [
+                    "data",
+                    "cached",
+                    "source"
+                  ]
                 }
               }
             }
@@ -989,6 +1087,9 @@
           "403": {
             "$ref": "#/components/responses/AccountSuspended"
           },
+          "410": {
+            "$ref": "#/components/responses/CursorExpired"
+          },
           "429": {
             "$ref": "#/components/responses/RateLimited"
           },
@@ -1001,17 +1102,18 @@
     "/track": {
       "get": {
         "operationId": "track",
-        "summary": "Track a vessel or port",
-        "description": "One call from free text to the live picture. kind=vessel: resolves an IMO, MMSI or exact vessel name and returns its details and latest position. kind=port: resolves a UN/LOCODE or exact port name and returns its details and the nearest vessels within 5 km. An ambiguous name answers 400 with candidates.\n\nEach successful request uses 10 credits.",
-        "x-credits": 10,
+        "summary": "Track",
+        "description": "From free text to the live picture. kind=vessel: resolves an IMO, MMSI or exact vessel name and returns the vessel's details (`vessel`) and latest position with voyage (`position`). kind=port: resolves a UN/LOCODE or exact port name and returns the port's details (`port`) and the nearest vessels within 5 km (`vessels`, nearest first). `resolved` says what the text was resolved to. A name matching several vessels or ports is refused as ambiguous, with the candidates listed in the error.\n\nEach successful request uses 5 credits.",
+        "x-credits": 5,
         "parameters": [
           {
             "name": "query",
             "in": "query",
-            "required": true,
-            "description": "Vessel name/IMO/MMSI, or port name/UN/LOCODE",
+            "required": false,
+            "description": "vessel name, IMO or MMSI (kind=vessel), or port name or UN/LOCODE (kind=port)",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "ever given"
             },
             "example": "ever given"
           },
@@ -1019,13 +1121,13 @@
             "name": "kind",
             "in": "query",
             "required": false,
-            "description": "What to resolve the text to",
+            "description": "what to resolve the text to: vessel or port",
             "schema": {
-              "type": "string",
               "enum": [
                 "vessel",
                 "port"
               ],
+              "type": "string",
               "default": "vessel"
             },
             "example": "vessel"
@@ -1037,22 +1139,12 @@
             "description": "kind=port: how many nearby vessels to include (0 to 50)",
             "schema": {
               "type": "integer",
-              "default": 10,
-              "minimum": 0,
-              "maximum": 50
+              "default": 10
             },
             "example": 10
           },
           {
-            "name": "refresh",
-            "in": "query",
-            "required": false,
-            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "example": false
+            "$ref": "#/components/parameters/MaxAge"
           }
         ],
         "responses": {
@@ -1076,6 +1168,25 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "x-maviapi-unknown-params": {
+                "description": "Query params this endpoint does not take, comma separated; they were ignored. Send `x-maviapi-strict: 1` to get a free `400 unknown_param` instead.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Age": {
+                "description": "Seconds since the data was read from the site, as the body's `age`.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-maviapi-fetched-at": {
+                "description": "When the data was read from the site (ISO 8601, UTC), as the body's `fetched_at`.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
               }
             },
             "content": {
@@ -1084,10 +1195,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "type": [
-                        "object",
-                        "null"
-                      ],
+                      "type": "object",
                       "properties": {
                         "kind": {
                           "type": [
@@ -1143,16 +1251,14 @@
                                 "string",
                                 "null"
                               ],
-                              "example": "5630138",
-                              "description": "MarineTraffic ship id"
+                              "example": "5630138"
                             },
                             "ref": {
                               "type": [
                                 "string",
                                 "null"
                               ],
-                              "example": "shipid:5630138",
-                              "description": "Identifier accepted by /vessels/{imo} (works for vessels without an IMO)"
+                              "example": "shipid:5630138"
                             },
                             "name": {
                               "type": [
@@ -1240,7 +1346,7 @@
                             },
                             "width_m": {
                               "type": [
-                                "number",
+                                "integer",
                                 "null"
                               ],
                               "example": 59
@@ -1253,11 +1359,7 @@
                               "example": "Class A"
                             },
                             "home_port": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "nullable": true,
+                              "type": "null",
                               "example": null
                             },
                             "url": {
@@ -1265,8 +1367,14 @@
                                 "string",
                                 "null"
                               ],
-                              "example": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138",
-                              "format": "uri"
+                              "example": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138"
+                            },
+                            "summary": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "EVER GIVEN (IMO: 9811000) is a Container Ship and is sailing under the flag of Liberia. Her length overall (LOA) is 399.94 meters and her width is 59 meters."
                             }
                           }
                         },
@@ -1309,42 +1417,42 @@
                                 "number",
                                 "null"
                               ],
-                              "example": 26.873938
+                              "example": 22.572479
                             },
                             "longitude": {
                               "type": [
                                 "number",
                                 "null"
                               ],
-                              "example": 122.03899
+                              "example": 114.28415
                             },
                             "speed_knots": {
                               "type": [
-                                "number",
+                                "integer",
                                 "null"
                               ],
-                              "example": 15.1
+                              "example": 0
                             },
                             "course": {
                               "type": [
-                                "number",
+                                "integer",
                                 "null"
                               ],
-                              "example": 208
+                              "example": 154
                             },
                             "heading": {
                               "type": [
-                                "number",
+                                "integer",
                                 "null"
                               ],
-                              "example": 213
+                              "example": 319
                             },
                             "rate_of_turn": {
                               "type": [
-                                "number",
+                                "integer",
                                 "null"
                               ],
-                              "example": 9
+                              "example": 0
                             },
                             "draught_m": {
                               "type": [
@@ -1358,37 +1466,35 @@
                                 "string",
                                 "null"
                               ],
-                              "example": "Underway using Engine"
+                              "example": "Moored"
                             },
                             "area": {
                               "type": [
                                 "string",
                                 "null"
                               ],
-                              "example": "East China Sea"
+                              "example": "South China"
                             },
                             "timestamp": {
                               "type": [
                                 "string",
                                 "null"
                               ],
-                              "example": "2026-11-21T05:41:07.000Z",
-                              "format": "date-time"
+                              "example": "2026-11-27T10:10:54.000Z"
                             },
                             "position_age_minutes": {
                               "type": [
                                 "integer",
                                 "null"
                               ],
-                              "example": 47
+                              "example": 2
                             },
                             "received_by": {
                               "type": [
                                 "string",
                                 "null"
                               ],
-                              "example": "Roaming",
-                              "description": "Terrestrial (station) or roaming/satellite reception"
+                              "example": "Terrestrial"
                             },
                             "in_range": {
                               "type": [
@@ -1402,69 +1508,23 @@
                                 "string",
                                 "null"
                               ],
-                              "example": "TWTPE",
-                              "description": "Destination as reported by the crew over AIS"
+                              "example": "CNYTN"
                             },
                             "eta": {
                               "type": [
                                 "string",
                                 "null"
                               ],
-                              "example": "2026-11-21T14:00:00.000Z",
-                              "format": "date-time"
+                              "example": "2026-11-27T02:00:00.000Z"
                             },
                             "voyage_progress_pct": {
                               "type": [
-                                "number",
+                                "integer",
                                 "null"
                               ],
-                              "example": 70.9
+                              "example": 100
                             },
                             "departure_port": {
-                              "type": [
-                                "object",
-                                "null"
-                              ],
-                              "properties": {
-                                "port_id": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ],
-                                  "example": "1253"
-                                },
-                                "name": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ],
-                                  "example": "SHANGHAI"
-                                },
-                                "unlocode": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ],
-                                  "example": "CNSHG"
-                                },
-                                "country_code": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ],
-                                  "example": "CN"
-                                }
-                              }
-                            },
-                            "departure_time": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "2026-11-20T11:25:00.000Z",
-                              "format": "date-time"
-                            },
-                            "arrival_port": {
                               "type": [
                                 "object",
                                 "null"
@@ -1500,353 +1560,100 @@
                                 }
                               }
                             },
+                            "departure_time": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "2026-11-22T10:55:00.000Z"
+                            },
+                            "arrival_port": {
+                              "type": [
+                                "object",
+                                "null"
+                              ],
+                              "properties": {
+                                "port_id": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "1006"
+                                },
+                                "name": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "YANTIAN"
+                                },
+                                "unlocode": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "CNYTN"
+                                },
+                                "country_code": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "example": "CN"
+                                }
+                              }
+                            },
                             "arrival_time": {
                               "type": [
                                 "string",
                                 "null"
                               ],
-                              "example": "2026-11-21T14:00:00.000Z",
-                              "format": "date-time"
+                              "example": "2026-11-27T02:58:00.000Z"
                             },
                             "arrival_time_kind": {
                               "type": [
                                 "string",
                                 "null"
                               ],
-                              "example": "estimated",
-                              "enum": [
-                                "estimated",
-                                "actual",
-                                null
-                              ]
+                              "example": "actual"
                             }
                           }
                         },
-                        "port": {
+                        "fetched_at": {
                           "type": [
-                            "object",
+                            "string",
                             "null"
                           ],
-                          "properties": {
-                            "port_id": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "2036"
-                            },
-                            "name": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "ROTTERDAM"
-                            },
-                            "unlocode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "NLRTM"
-                            },
-                            "country": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "NETHERLANDS"
-                            },
-                            "country_code": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "NL"
-                            },
-                            "type": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "Port"
-                            },
-                            "size": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "Large"
-                            },
-                            "latitude": {
-                              "type": [
-                                "number",
-                                "null"
-                              ],
-                              "example": 51.943306
-                            },
-                            "longitude": {
-                              "type": [
-                                "number",
-                                "null"
-                              ],
-                              "example": 4.1418123
-                            },
-                            "utc_offset_hours": {
-                              "type": [
-                                "number",
-                                "null"
-                              ],
-                              "example": 1
-                            },
-                            "alternative_names": {
-                              "type": [
-                                "array",
-                                "null"
-                              ],
-                              "items": {
-                                "type": "string",
-                                "example": "EUROPOORT"
-                              }
-                            },
-                            "anchorages": {
-                              "type": [
-                                "array",
-                                "null"
-                              ],
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "port_id": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "example": "22307"
-                                  },
-                                  "name": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "example": "ROTTERDAM ANCH"
-                                  }
-                                }
-                              }
-                            },
-                            "related_ports": {
-                              "type": [
-                                "array",
-                                "null"
-                              ],
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "port_id": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "example": "2033"
-                                  },
-                                  "name": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "example": "ROTTERDAM BOTLEK"
-                                  }
-                                }
-                              }
-                            },
-                            "summary": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "ROTTERDAM is located at UK Coast & Atlantic, Rotterdam Area in NETHERLANDS. The official UN/LOCODE of this port is NLRTM."
-                            },
-                            "url": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "https://www.marinetraffic.com/en/ais/details/ports/2036",
-                              "format": "uri"
-                            }
-                          }
+                          "example": "2026-11-27T10:13:04.716Z"
                         },
-                        "nearby": {
+                        "age": {
                           "type": [
-                            "object",
+                            "integer",
                             "null"
                           ],
-                          "properties": {
-                            "radius_km": {
-                              "type": [
-                                "number",
-                                "null"
-                              ],
-                              "example": 5
-                            },
-                            "count": {
-                              "type": [
-                                "integer",
-                                "null"
-                              ],
-                              "example": 182
-                            },
-                            "vessels": {
-                              "type": [
-                                "array",
-                                "null"
-                              ],
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "ship_id": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "example": "3387654"
-                                  },
-                                  "ref": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "example": "shipid:3387654"
-                                  },
-                                  "name": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "example": "SNIP"
-                                  },
-                                  "flag_code": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "example": "NL"
-                                  },
-                                  "vessel_type": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "example": "cargo"
-                                  },
-                                  "latitude": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
-                                    "example": 51.952328
-                                  },
-                                  "longitude": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
-                                    "example": 4.1202168
-                                  },
-                                  "distance_km": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
-                                    "example": 1.77
-                                  },
-                                  "speed_knots": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
-                                    "example": 0
-                                  },
-                                  "course": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
-                                    "nullable": true,
-                                    "example": null
-                                  },
-                                  "heading": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
-                                    "example": 169
-                                  },
-                                  "destination": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "example": "ROTTERDAM"
-                                  },
-                                  "length_m": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
-                                    "example": 64
-                                  },
-                                  "width_m": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
-                                    "example": 7
-                                  },
-                                  "dwt": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ],
-                                    "nullable": true,
-                                    "example": 1200
-                                  },
-                                  "position_age_minutes": {
-                                    "type": [
-                                      "integer",
-                                      "null"
-                                    ],
-                                    "example": 2
-                                  },
-                                  "timestamp": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ],
-                                    "example": "2026-11-21T06:40:00.000Z",
-                                    "format": "date-time"
-                                  }
-                                }
-                              }
-                            }
-                          }
+                          "example": 0
                         }
                       }
                     },
                     "cached": {
-                      "type": [
-                        "boolean",
-                        "null"
-                      ],
-                      "example": false
+                      "type": "boolean",
+                      "description": "Whether this answer was served from the stored copy."
                     },
                     "source": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "example": "marinetraffic:web"
+                      "description": "Where the data was read from."
+                    },
+                    "fetched_at": {
+                      "$ref": "#/components/schemas/FetchedAt"
+                    },
+                    "age": {
+                      "$ref": "#/components/schemas/Age"
                     }
-                  }
+                  },
+                  "required": [
+                    "data",
+                    "cached",
+                    "source"
+                  ]
                 }
               }
             }
@@ -1875,18 +1682,18 @@
     "/vessels": {
       "get": {
         "operationId": "vessels",
-        "summary": "Search vessels",
-        "description": "Search vessels by name, IMO or MMSI. Each match carries its particulars (IMO, MMSI, call sign, flag, type, size). The site returns at most 12 matches per query and has no paging: use a fuller name, or the IMO/MMSI, to reach a specific vessel.\n\nEach successful request uses 10 credits for every 12 rows it returns (at least 10 credits).",
-        "x-credits": 10,
-        "x-credits-rows": 12,
+        "summary": "Vessels",
+        "description": "Vessels whose name (current or former), IMO or MMSI matches the text, in the site's relevance order (at most 12; use a fuller name or the IMO/MMSI to reach a specific vessel). Each row carries the vessel's particulars: ship id, IMO, MMSI, call sign, flag, type, market, size class, length and width, plus the name or number it matched on.\n\nEach successful request uses 5 credits.",
+        "x-credits": 5,
         "parameters": [
           {
             "name": "query",
             "in": "query",
-            "required": true,
-            "description": "Vessel name (at least 3 characters), IMO number or MMSI",
+            "required": false,
+            "description": "vessel name (at least 3 characters), IMO number or MMSI",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "ever given"
             },
             "example": "ever given"
           },
@@ -1894,37 +1701,33 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "Rows per page (default 50, max 200)",
+            "description": "Rows in one page, 1 to 200 (default 50).",
             "schema": {
               "type": "integer",
-              "default": 50,
               "minimum": 1,
-              "maximum": 200
-            },
-            "example": 50
+              "maximum": 200,
+              "default": 50
+            }
           },
           {
             "name": "offset",
             "in": "query",
             "required": false,
-            "description": "Rows to skip",
+            "description": "Rows to skip before the page starts (default 0).",
             "schema": {
               "type": "integer",
-              "default": 0,
-              "minimum": 0
-            },
-            "example": 0
+              "minimum": 0,
+              "default": 0
+            }
           },
           {
-            "name": "refresh",
-            "in": "query",
-            "required": false,
-            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "example": false
+            "$ref": "#/components/parameters/Fields"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/MaxAge"
           }
         ],
         "responses": {
@@ -1948,6 +1751,25 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "x-maviapi-unknown-params": {
+                "description": "Query params this endpoint does not take, comma separated; they were ignored. Send `x-maviapi-strict: 1` to get a free `400 unknown_param` instead.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Age": {
+                "description": "Seconds since the data was read from the site, as the body's `age`.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-maviapi-fetched-at": {
+                "description": "When the data was read from the site (ISO 8601, UTC), as the body's `fetched_at`.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
               }
             },
             "content": {
@@ -1956,10 +1778,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "type": [
-                        "object",
-                        "null"
-                      ],
+                      "type": "object",
                       "properties": {
                         "query": {
                           "type": [
@@ -1995,16 +1814,14 @@
                                   "string",
                                   "null"
                                 ],
-                                "example": "5630138",
-                                "description": "MarineTraffic ship id"
+                                "example": "5630138"
                               },
                               "ref": {
                                 "type": [
                                   "string",
                                   "null"
                                 ],
-                                "example": "shipid:5630138",
-                                "description": "Identifier accepted by /vessels/{imo} (works for vessels without an IMO)"
+                                "example": "shipid:5630138"
                               },
                               "name": {
                                 "type": [
@@ -2092,7 +1909,7 @@
                               },
                               "width_m": {
                                 "type": [
-                                  "number",
+                                  "integer",
                                   "null"
                                 ],
                                 "example": 59
@@ -2105,11 +1922,7 @@
                                 "example": "Class A"
                               },
                               "home_port": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "nullable": true,
+                                "type": "null",
                                 "example": null
                               },
                               "url": {
@@ -2117,8 +1930,7 @@
                                   "string",
                                   "null"
                                 ],
-                                "example": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138",
-                                "format": "uri"
+                                "example": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138"
                               },
                               "matched_on": {
                                 "type": [
@@ -2129,67 +1941,91 @@
                               }
                             }
                           }
-                        }
-                      }
-                    },
-                    "cached": {
-                      "type": [
-                        "boolean",
-                        "null"
-                      ],
-                      "example": false
-                    },
-                    "source": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "example": "marinetraffic:web"
-                    },
-                    "pagination": {
-                      "type": [
-                        "object",
-                        "null"
-                      ],
-                      "properties": {
-                        "total": {
+                        },
+                        "pagination": {
                           "type": [
-                            "integer",
+                            "object",
                             "null"
                           ],
-                          "example": 182
+                          "properties": {
+                            "count": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ],
+                              "example": 1
+                            },
+                            "has_more": {
+                              "type": [
+                                "boolean",
+                                "null"
+                              ],
+                              "example": false
+                            },
+                            "next_cursor": {
+                              "type": "null",
+                              "example": null
+                            }
+                          }
                         },
-                        "limit": {
+                        "fetched_at": {
                           "type": [
-                            "integer",
+                            "string",
                             "null"
                           ],
-                          "example": 50
+                          "example": "2026-11-27T10:13:05.843Z"
                         },
-                        "offset": {
+                        "age": {
                           "type": [
                             "integer",
                             "null"
                           ],
                           "example": 0
-                        },
-                        "count": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
-                          "example": 50
-                        },
-                        "has_more": {
-                          "type": [
-                            "boolean",
-                            "null"
-                          ],
-                          "example": true
                         }
                       }
+                    },
+                    "cached": {
+                      "type": "boolean",
+                      "description": "Whether this answer was served from the stored copy."
+                    },
+                    "source": {
+                      "description": "Where the data was read from."
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "offset": {
+                          "type": "integer"
+                        },
+                        "count": {
+                          "type": "integer"
+                        },
+                        "has_more": {
+                          "type": "boolean"
+                        },
+                        "next_cursor": {
+                          "$ref": "#/components/schemas/NextCursor"
+                        }
+                      }
+                    },
+                    "fetched_at": {
+                      "$ref": "#/components/schemas/FetchedAt"
+                    },
+                    "age": {
+                      "$ref": "#/components/schemas/Age"
                     }
-                  }
+                  },
+                  "required": [
+                    "data",
+                    "cached",
+                    "source"
+                  ]
                 }
               }
             }
@@ -2206,6 +2042,9 @@
           "403": {
             "$ref": "#/components/responses/AccountSuspended"
           },
+          "410": {
+            "$ref": "#/components/responses/CursorExpired"
+          },
           "429": {
             "$ref": "#/components/responses/RateLimited"
           },
@@ -2218,9 +2057,9 @@
     "/vessels/{imo}": {
       "get": {
         "operationId": "vesselsByImo",
-        "summary": "Vessel details",
-        "description": "Registry details of one vessel: name, IMO, MMSI, call sign, flag, type, commercial market and size class, length and width. Build year is not public on the site (login only) and is not returned.\n\nEach successful request uses 10 credits.",
-        "x-credits": 10,
+        "summary": "Vessel",
+        "description": "Registry details of one vessel: name, AIS name, IMO, MMSI, call sign, flag, type, AIS type, commercial market and size class, length and width, AIS class, home port and the site's summary sentence. Build year is not public and is not returned.\n\nEach successful request uses 5 credits.",
+        "x-credits": 5,
         "parameters": [
           {
             "name": "imo",
@@ -2233,15 +2072,7 @@
             "example": "9811000"
           },
           {
-            "name": "refresh",
-            "in": "query",
-            "required": false,
-            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "example": false
+            "$ref": "#/components/parameters/MaxAge"
           }
         ],
         "responses": {
@@ -2265,6 +2096,25 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "x-maviapi-unknown-params": {
+                "description": "Query params this endpoint does not take, comma separated; they were ignored. Send `x-maviapi-strict: 1` to get a free `400 unknown_param` instead.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Age": {
+                "description": "Seconds since the data was read from the site, as the body's `age`.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-maviapi-fetched-at": {
+                "description": "When the data was read from the site (ISO 8601, UTC), as the body's `fetched_at`.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
               }
             },
             "content": {
@@ -2273,26 +2123,21 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "type": [
-                        "object",
-                        "null"
-                      ],
+                      "type": "object",
                       "properties": {
                         "ship_id": {
                           "type": [
                             "string",
                             "null"
                           ],
-                          "example": "5630138",
-                          "description": "MarineTraffic ship id"
+                          "example": "5630138"
                         },
                         "ref": {
                           "type": [
                             "string",
                             "null"
                           ],
-                          "example": "shipid:5630138",
-                          "description": "Identifier accepted by /vessels/{imo} (works for vessels without an IMO)"
+                          "example": "shipid:5630138"
                         },
                         "name": {
                           "type": [
@@ -2380,7 +2225,7 @@
                         },
                         "width_m": {
                           "type": [
-                            "number",
+                            "integer",
                             "null"
                           ],
                           "example": 59
@@ -2393,11 +2238,7 @@
                           "example": "Class A"
                         },
                         "home_port": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
-                          "nullable": true,
+                          "type": "null",
                           "example": null
                         },
                         "url": {
@@ -2405,33 +2246,50 @@
                             "string",
                             "null"
                           ],
-                          "example": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138",
-                          "format": "uri"
+                          "example": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138"
                         },
                         "summary": {
                           "type": [
                             "string",
                             "null"
                           ],
-                          "example": "EVER GIVEN (IMO: 9811000) is a Container Ship and is sailing under the flag of Liberia."
+                          "example": "EVER GIVEN (IMO: 9811000) is a Container Ship and is sailing under the flag of Liberia. Her length overall (LOA) is 399.94 meters and her width is 59 meters."
+                        },
+                        "fetched_at": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "2026-11-27T10:13:05.329Z"
+                        },
+                        "age": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 0
                         }
                       }
                     },
                     "cached": {
-                      "type": [
-                        "boolean",
-                        "null"
-                      ],
-                      "example": false
+                      "type": "boolean",
+                      "description": "Whether this answer was served from the stored copy."
                     },
                     "source": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "example": "marinetraffic:web"
+                      "description": "Where the data was read from."
+                    },
+                    "fetched_at": {
+                      "$ref": "#/components/schemas/FetchedAt"
+                    },
+                    "age": {
+                      "$ref": "#/components/schemas/Age"
                     }
-                  }
+                  },
+                  "required": [
+                    "data",
+                    "cached",
+                    "source"
+                  ]
                 }
               }
             }
@@ -2460,9 +2318,9 @@
     "/vessels/{imo}/position": {
       "get": {
         "operationId": "vesselsPositionByImo",
-        "summary": "Vessel position",
-        "description": "Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational status, time of report) with its voyage: reported destination, ETA, departure and arrival ports.\n\nEach successful request uses 10 credits.",
-        "x-credits": 10,
+        "summary": "Vessel Position",
+        "description": "Latest AIS position of one vessel (latitude/longitude, speed in knots, course, heading, rate of turn, draught, navigational status, sea area, report time in UTC and its age, reception type) with its voyage: destination reported over AIS, ETA, progress, departure port and time, arrival port and time (actual once arrived, else estimated).\n\nEach successful request uses 5 credits.",
+        "x-credits": 5,
         "parameters": [
           {
             "name": "imo",
@@ -2475,15 +2333,7 @@
             "example": "9811000"
           },
           {
-            "name": "refresh",
-            "in": "query",
-            "required": false,
-            "description": "Bypass and repopulate the cache (answers are cached for 5 minutes)",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "example": false
+            "$ref": "#/components/parameters/MaxAge"
           }
         ],
         "responses": {
@@ -2507,6 +2357,25 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "x-maviapi-unknown-params": {
+                "description": "Query params this endpoint does not take, comma separated; they were ignored. Send `x-maviapi-strict: 1` to get a free `400 unknown_param` instead.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Age": {
+                "description": "Seconds since the data was read from the site, as the body's `age`.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-maviapi-fetched-at": {
+                "description": "When the data was read from the site (ISO 8601, UTC), as the body's `fetched_at`.",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
               }
             },
             "content": {
@@ -2515,10 +2384,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "type": [
-                        "object",
-                        "null"
-                      ],
+                      "type": "object",
                       "properties": {
                         "name": {
                           "type": [
@@ -2553,42 +2419,42 @@
                             "number",
                             "null"
                           ],
-                          "example": 26.873938
+                          "example": 22.572479
                         },
                         "longitude": {
                           "type": [
                             "number",
                             "null"
                           ],
-                          "example": 122.03899
+                          "example": 114.28415
                         },
                         "speed_knots": {
                           "type": [
-                            "number",
+                            "integer",
                             "null"
                           ],
-                          "example": 15.1
+                          "example": 0
                         },
                         "course": {
                           "type": [
-                            "number",
+                            "integer",
                             "null"
                           ],
-                          "example": 208
+                          "example": 154
                         },
                         "heading": {
                           "type": [
-                            "number",
+                            "integer",
                             "null"
                           ],
-                          "example": 213
+                          "example": 319
                         },
                         "rate_of_turn": {
                           "type": [
-                            "number",
+                            "integer",
                             "null"
                           ],
-                          "example": 9
+                          "example": 0
                         },
                         "draught_m": {
                           "type": [
@@ -2602,37 +2468,35 @@
                             "string",
                             "null"
                           ],
-                          "example": "Underway using Engine"
+                          "example": "Moored"
                         },
                         "area": {
                           "type": [
                             "string",
                             "null"
                           ],
-                          "example": "East China Sea"
+                          "example": "South China"
                         },
                         "timestamp": {
                           "type": [
                             "string",
                             "null"
                           ],
-                          "example": "2026-11-21T05:41:07.000Z",
-                          "format": "date-time"
+                          "example": "2026-11-27T10:10:54.000Z"
                         },
                         "position_age_minutes": {
                           "type": [
                             "integer",
                             "null"
                           ],
-                          "example": 47
+                          "example": 2
                         },
                         "received_by": {
                           "type": [
                             "string",
                             "null"
                           ],
-                          "example": "Roaming",
-                          "description": "Terrestrial (station) or roaming/satellite reception"
+                          "example": "Terrestrial"
                         },
                         "in_range": {
                           "type": [
@@ -2646,69 +2510,23 @@
                             "string",
                             "null"
                           ],
-                          "example": "TWTPE",
-                          "description": "Destination as reported by the crew over AIS"
+                          "example": "CNYTN"
                         },
                         "eta": {
                           "type": [
                             "string",
                             "null"
                           ],
-                          "example": "2026-11-21T14:00:00.000Z",
-                          "format": "date-time"
+                          "example": "2026-11-27T02:00:00.000Z"
                         },
                         "voyage_progress_pct": {
                           "type": [
-                            "number",
+                            "integer",
                             "null"
                           ],
-                          "example": 70.9
+                          "example": 100
                         },
                         "departure_port": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
-                          "properties": {
-                            "port_id": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "1253"
-                            },
-                            "name": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "SHANGHAI"
-                            },
-                            "unlocode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "CNSHG"
-                            },
-                            "country_code": {
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "example": "CN"
-                            }
-                          }
-                        },
-                        "departure_time": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
-                          "example": "2026-11-20T11:25:00.000Z",
-                          "format": "date-time"
-                        },
-                        "arrival_port": {
                           "type": [
                             "object",
                             "null"
@@ -2744,43 +2562,98 @@
                             }
                           }
                         },
+                        "departure_time": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "2026-11-22T10:55:00.000Z"
+                        },
+                        "arrival_port": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "port_id": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "1006"
+                            },
+                            "name": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "YANTIAN"
+                            },
+                            "unlocode": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "CNYTN"
+                            },
+                            "country_code": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "example": "CN"
+                            }
+                          }
+                        },
                         "arrival_time": {
                           "type": [
                             "string",
                             "null"
                           ],
-                          "example": "2026-11-21T14:00:00.000Z",
-                          "format": "date-time"
+                          "example": "2026-11-27T02:58:00.000Z"
                         },
                         "arrival_time_kind": {
                           "type": [
                             "string",
                             "null"
                           ],
-                          "example": "estimated",
-                          "enum": [
-                            "estimated",
-                            "actual",
-                            null
-                          ]
+                          "example": "actual"
+                        },
+                        "fetched_at": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "2026-11-27T10:13:05.605Z"
+                        },
+                        "age": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "example": 0
                         }
                       }
                     },
                     "cached": {
-                      "type": [
-                        "boolean",
-                        "null"
-                      ],
-                      "example": false
+                      "type": "boolean",
+                      "description": "Whether this answer was served from the stored copy."
                     },
                     "source": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "example": "marinetraffic:web"
+                      "description": "Where the data was read from."
+                    },
+                    "fetched_at": {
+                      "$ref": "#/components/schemas/FetchedAt"
+                    },
+                    "age": {
+                      "$ref": "#/components/schemas/Age"
                     }
-                  }
+                  },
+                  "required": [
+                    "data",
+                    "cached",
+                    "source"
+                  ]
                 }
               }
             }
@@ -2815,6 +2688,37 @@
         "description": "Your maviapi API key, sent as `Authorization: Bearer <key>`. Create one at https://maviapi.com/dashboard/keys."
       }
     },
+    "parameters": {
+      "Fields": {
+        "name": "fields",
+        "in": "query",
+        "required": false,
+        "description": "Row fields to keep in a list answer, comma separated (at most 50). A dot reaches into an object, or into each object of an array (venue.city). A name no row has is a 400 that lists the fields a row has.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Cursor": {
+        "name": "cursor",
+        "in": "query",
+        "required": false,
+        "description": "pagination.next_cursor of the previous page, sent with the same other params: the next page of the same stored copy of the list, so a walk never skips or repeats a row when the cache refreshes or the site reorders. A cursor for other params is 400 invalid_cursor; a copy that is gone is 410 cursor_expired (start again without cursor).",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "MaxAge": {
+        "name": "max_age",
+        "in": "query",
+        "required": false,
+        "description": "Serve a stored answer only when it was read at most this many seconds ago (0 to 86400); older, the site is read again. 0 is refresh=true. Any other value is 400 invalid_max_age.",
+        "schema": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 86400
+        }
+      }
+    },
     "schemas": {
       "Error": {
         "type": "object",
@@ -2837,11 +2741,35 @@
             "description": "Whether the same request may succeed later without any change. When true, wait the seconds in `Retry-After` (if sent) first."
           }
         }
+      },
+      "FetchedAt": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time",
+        "description": "When this data was read from the site (ISO 8601, UTC). Also in the x-maviapi-fetched-at header.",
+        "example": "2026-11-25T09:30:00.000Z"
+      },
+      "Age": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "description": "Seconds since fetched_at: 0 for a fresh read, more for a stored answer. Also in the Age header.",
+        "example": 0
+      },
+      "NextCursor": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Send as `cursor`, with the same other params, for the next page of the same copy of the list; null on the last page."
       }
     },
     "responses": {
       "BadRequest": {
-        "description": "A parameter is missing or cannot be used.",
+        "description": "A parameter is missing or cannot be used (`bad_request`), or, with the `x-maviapi-strict: 1` request header, a query param the operation does not take was sent (`unknown_param`, with the names in `params`).",
         "content": {
           "application/json": {
             "schema": {
@@ -2942,6 +2870,21 @@
               "error": "scrape_failed",
               "message": "The upstream source could not be fetched",
               "retryable": true
+            }
+          }
+        }
+      },
+      "CursorExpired": {
+        "description": "The stored copy of the list this cursor walks is gone. Start the list again without cursor.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "cursor_expired",
+              "message": "The copy of the list this cursor walks is gone. Start the list again without cursor.",
+              "retryable": false
             }
           }
         }

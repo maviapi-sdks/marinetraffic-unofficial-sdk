@@ -152,13 +152,13 @@ Console.WriteLine(result);
 
 | Endpoint | What it returns | Credits per call |
 |---|---|---|
-| [`GET /ports`](#get-ports) | Search ports, anchorages and offshore terminals by name or UN/LOCODE, with country, UN/LOCODE and coordinates. | 10 |
-| [`GET /ports/{port}`](#get-portsport) | Details of one port: name, UN/LOCODE, country, type, size, coordinates, time zone, other names and its anchorages. | 10 |
-| [`GET /ports/{port}/vessels`](#get-portsportvessels) | Ships currently in or near a port: every vessel the live map shows within radius_km of the port's position, nearest first, with position, speed, course, destination and size. | 10 |
-| [`GET /track`](#get-track) | One call from free text to the live picture. | 10 |
-| [`GET /vessels`](#get-vessels) | Search vessels by name, IMO or MMSI. | 10 |
-| [`GET /vessels/{imo}`](#get-vesselsimo) | Registry details of one vessel: name, IMO, MMSI, call sign, flag, type, commercial market and size class, length and width. | 10 |
-| [`GET /vessels/{imo}/position`](#get-vesselsimoposition) | Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational status, time of report) with its voyage: reported destination, ETA, departure and arrival ports. | 10 |
+| [`GET /ports`](#get-ports) | Ports, anchorages and offshore terminals whose name or UN/LOCODE matches the text, in the site's relevance order (the site returns at most about 12 matches). | 5 |
+| [`GET /ports/{port}`](#get-portsport) | Details of one port: name, UN/LOCODE, country, type, size, coordinates, UTC offset in hours, alternative names, its anchorages, related ports and the site's one-paragraph summary. | 5 |
+| [`GET /ports/{port}/vessels`](#get-portsportvessels) | Ships currently in or near a port: every identified vessel the live map shows within radius_km of the port's position (anonymous [SAT-AIS] placeholders left out), nearest first, with position, distance, speed, course, heading, AIS destination, size, deadweight and the age of the position. | 5 |
+| [`GET /track`](#get-track) | From free text to the live picture. | 5 |
+| [`GET /vessels`](#get-vessels) | Vessels whose name (current or former), IMO or MMSI matches the text, in the site's relevance order (at most 12; use a fuller name or the IMO/MMSI to reach a specific vessel). | 5 |
+| [`GET /vessels/{imo}`](#get-vesselsimo) | Registry details of one vessel: name, AIS name, IMO, MMSI, call sign, flag, type, AIS type, commercial market and size class, length and width, AIS class, home port and the site's summary sentence. | 5 |
+| [`GET /vessels/{imo}/position`](#get-vesselsimoposition) | Latest AIS position of one vessel (latitude/longitude, speed in knots, course, heading, rate of turn, draught, navigational status, sea area, report time in UTC and its age, reception type) with its voyage: destination reported over AIS, ETA, progress, departure port and time, arrival port and time (actual once arrived, else estimated). | 5 |
 
 Try each one in the browser on the [MarineTraffic API page](https://maviapi.com/apis/marinetraffic?utm_source=github&utm_medium=readme&utm_campaign=sdk-marinetraffic).
 
@@ -172,31 +172,34 @@ A request the API answers with an error status raises an `ApiError` (in Go, retu
 
 | Status | Code | Meaning |
 |---|---|---|
-| 400 | `bad_request` | A parameter is missing or cannot be used. |
+| 400 | `bad_request` | A parameter is missing or cannot be used (`bad_request`), or, with the `x-maviapi-strict: 1` request header, a query param the operation does not take was sent (`unknown_param`, with the names in `params`). |
 | 401 | `missing_api_key` | No API key was sent, or the key is invalid or revoked (`missing_api_key`, `invalid_api_key`). |
 | 402 | `credit_limit_reached` | The plan's credits for this period are used up. |
 | 403 | `account_banned` | The account that owns the key is suspended. |
+| 410 | `cursor_expired` | The stored copy of the list this cursor walks is gone. Start the list again without cursor. |
 | 429 | `rate_limited` | Too many requests for this key (`rate_limited`), or too many at once for its plan (`concurrency_limited`). Wait the number of seconds in `Retry-After`. |
 | 502 | `scrape_failed` | The source site could not be read this time. Retrying later usually works. |
 
 ## Endpoint reference
 
-Base URL: `https://api.maviapi.com/v1/sites/marinetraffic`. API version 2026-11-21. The same contract is in [`openapi.json`](openapi.json).
+Base URL: `https://api.maviapi.com/v1/sites/marinetraffic`. API version 2026-11-27. The same contract is in [`openapi.json`](openapi.json).
 
 ### `GET /ports`
 
-Search ports, anchorages and offshore terminals by name or UN/LOCODE, with country, UN/LOCODE and coordinates. The site returns at most about 12 matches per query and has no paging.
+Ports, anchorages and offshore terminals whose name or UN/LOCODE matches the text, in the site's relevance order (the site returns at most about 12 matches). Each row has the port id, name, type, country, UN/LOCODE, coordinates, size and the name or code it matched on.
 
-Each successful request uses 10 credits for every 12 rows it returns (at least 10 credits).
+Each successful request uses 5 credits.
 
 Methods: `ports` (Python, JavaScript/TypeScript, PHP, Ruby, Java) · `Ports` (Go) · `PortsAsync` (C#)
 
 Parameters:
 
-- `query` (string, required): Port name (at least 3 characters) or UN/LOCODE. Example: `rotterdam`.
-- `limit` (integer, optional): Rows per page (default 50, max 200). Example: `50`.
-- `offset` (integer, optional): Rows to skip. Example: `0`.
-- `refresh` (boolean, optional): Bypass and repopulate the cache (answers are cached for 5 minutes). Example: `false`.
+- `query` (string, optional): port name (at least 3 characters) or UN/LOCODE, e.g. "rotterdam" or "NLRTM". Example: `rotterdam`.
+- `limit` (integer, optional): Rows in one page, 1 to 200 (default 50).
+- `offset` (integer, optional): Rows to skip before the page starts (default 0).
+- `undefined` (string, optional)
+- `undefined` (string, optional)
+- `undefined` (string, optional)
 
 <details>
 <summary>Example response</summary>
@@ -221,17 +224,27 @@ Parameters:
         "matched_on": "ROTTERDAM",
         "url": "https://www.marinetraffic.com/en/ais/details/ports/2036"
       }
-    ]
+    ],
+    "pagination": {
+      "count": 7,
+      "has_more": false,
+      "next_cursor": null
+    },
+    "fetched_at": "2026-11-27T10:13:03.176Z",
+    "age": 0
   },
-  "cached": false,
-  "source": "marinetraffic:web",
+  "cached": null,
+  "source": null,
   "pagination": {
-    "total": 182,
-    "limit": 50,
-    "offset": 0,
-    "count": 50,
-    "has_more": true
-  }
+    "total": null,
+    "limit": null,
+    "offset": null,
+    "count": null,
+    "has_more": null,
+    "next_cursor": null
+  },
+  "fetched_at": null,
+  "age": null
 }
 ```
 
@@ -239,16 +252,16 @@ Parameters:
 
 ### `GET /ports/{port}`
 
-Details of one port: name, UN/LOCODE, country, type, size, coordinates, time zone, other names and its anchorages.
+Details of one port: name, UN/LOCODE, country, type, size, coordinates, UTC offset in hours, alternative names, its anchorages, related ports and the site's one-paragraph summary.
 
-Each successful request uses 10 credits.
+Each successful request uses 5 credits.
 
 Methods: `ports_by_port` (Python, Ruby) · `portsByPort` (JavaScript/TypeScript, PHP, Java) · `PortsByPort` (Go) · `PortsByPortAsync` (C#)
 
 Parameters:
 
 - `port` (string, required, in the path): UN/LOCODE (e.g. NLRTM) or MarineTraffic port id (e.g. 2036, the port_id of /ports). Example: `NLRTM`.
-- `refresh` (boolean, optional): Bypass and repopulate the cache (answers are cached for 5 minutes). Example: `false`.
+- `undefined` (string, optional)
 
 <details>
 <summary>Example response</summary>
@@ -267,7 +280,7 @@ Parameters:
     "longitude": 4.1418123,
     "utc_offset_hours": 1,
     "alternative_names": [
-      "EUROPOORT"
+      "MAASDIJK"
     ],
     "anchorages": [
       {
@@ -276,16 +289,22 @@ Parameters:
       }
     ],
     "related_ports": [
-      {
-        "port_id": "2033",
-        "name": "ROTTERDAM BOTLEK"
-      }
+      null
     ],
-    "summary": "ROTTERDAM is located at UK Coast & Atlantic, Rotterdam Area in NETHERLANDS. The official UN/LOCODE of this port is NLRTM.",
-    "url": "https://www.marinetraffic.com/en/ais/details/ports/2036"
+    "summary": "ROTTERDAM is located at UK Coast & Atlantic, Rotterdam Area in NETHERLANDS. The official UN/LOCODE of this port is NLRTM. It is also known as MAASDIJK,EUROPOORT,RDAM,DINTELHAVEN.",
+    "url": "https://www.marinetraffic.com/en/ais/details/ports/2036",
+    "pagination": {
+      "count": 1,
+      "has_more": false,
+      "next_cursor": null
+    },
+    "fetched_at": "2026-11-27T10:13:01.235Z",
+    "age": 0
   },
-  "cached": false,
-  "source": "marinetraffic:web"
+  "cached": null,
+  "source": null,
+  "fetched_at": null,
+  "age": null
 }
 ```
 
@@ -293,21 +312,23 @@ Parameters:
 
 ### `GET /ports/{port}/vessels`
 
-Ships currently in or near a port: every vessel the live map shows within radius_km of the port's position, nearest first, with position, speed, course, destination and size. `complete` is false only if part of the area could not be read.
+Ships currently in or near a port: every identified vessel the live map shows within radius_km of the port's position (anonymous [SAT-AIS] placeholders left out), nearest first, with position, distance, speed, course, heading, AIS destination, size, deadweight and the age of the position. `complete` is false only if part of the area could not be read; `map_requests` is how many map tiles were read.
 
-Each successful request uses 10 credits.
+Each successful request uses 5 credits.
 
 Methods: `ports_vessels_by_port` (Python, Ruby) · `portsVesselsByPort` (JavaScript/TypeScript, PHP, Java) · `PortsVesselsByPort` (Go) · `PortsVesselsByPortAsync` (C#)
 
 Parameters:
 
-- `port` (string, required, in the path): UN/LOCODE or MarineTraffic port id. Example: `NLRTM`.
-- `radius_km` (number, optional): Search radius around the port position, 0.5 to 15 km. Example: `5`.
-- `vessel_type` (string, optional): Only vessels of this map category. One of: `cargo`, `tanker`, `passenger`, `fishing`, `tug_special`, `high_speed`, `pleasure`, `navigation_aid`, `unspecified`. Example: `cargo`.
-- `moving` (boolean, optional): true: only vessels moving at 1 knot or more; false: only vessels stopped or moored.
-- `limit` (integer, optional): Rows per page (default 50, max 200). Example: `50`.
-- `offset` (integer, optional): Rows to skip. Example: `0`.
-- `refresh` (boolean, optional): Bypass and repopulate the cache (answers are cached for 5 minutes). Example: `false`.
+- `port` (string, required, in the path): UN/LOCODE (e.g. NLRTM) or MarineTraffic port id. Example: `NLRTM`.
+- `radius_km` (number, optional): search radius around the port position, 0.5 to 15 km. Example: `5`.
+- `vessel_type` (string, optional): only vessels of this map category (cargo, tanker, passenger, fishing, tug_special, high_speed, pleasure, navigation_aid, unspecified).
+- `moving` (string, optional): true for only vessels moving at 1 knot or more, false for only vessels stopped or moored.
+- `limit` (integer, optional): Rows in one page, 1 to 200 (default 50).
+- `offset` (integer, optional): Rows to skip before the page starts (default 0).
+- `undefined` (string, optional)
+- `undefined` (string, optional)
+- `undefined` (string, optional)
 
 <details>
 <summary>Example response</summary>
@@ -327,39 +348,49 @@ Parameters:
     "vessel_type": null,
     "moving": null,
     "complete": true,
-    "map_requests": 4,
-    "count": 182,
+    "map_requests": 16,
+    "count": 188,
     "vessels": [
       {
-        "ship_id": "3387654",
-        "ref": "shipid:3387654",
-        "name": "SNIP",
+        "ship_id": "7183696",
+        "ref": "shipid:7183696",
+        "name": "KRVE 87",
         "flag_code": "NL",
-        "vessel_type": "cargo",
-        "latitude": 51.952328,
-        "longitude": 4.1202168,
-        "distance_km": 1.77,
+        "vessel_type": "tug_special",
+        "latitude": 51.948772,
+        "longitude": 4.1490202,
+        "distance_km": 0.78,
         "speed_knots": 0,
-        "course": null,
-        "heading": 169,
-        "destination": "ROTTERDAM",
-        "length_m": 64,
-        "width_m": 7,
-        "dwt": 1200,
-        "position_age_minutes": 2,
-        "timestamp": "2026-11-21T06:40:00.000Z"
+        "course": 352,
+        "heading": null,
+        "destination": null,
+        "length_m": 16,
+        "width_m": 5,
+        "dwt": null,
+        "position_age_minutes": 3,
+        "timestamp": "2026-11-27T10:10:00.000Z"
       }
-    ]
+    ],
+    "pagination": {
+      "count": 188,
+      "has_more": false,
+      "next_cursor": null
+    },
+    "fetched_at": "2026-11-27T10:13:39.455Z",
+    "age": 0
   },
-  "cached": false,
-  "source": "marinetraffic:web",
+  "cached": null,
+  "source": null,
   "pagination": {
-    "total": 182,
-    "limit": 50,
-    "offset": 0,
-    "count": 50,
-    "has_more": true
-  }
+    "total": null,
+    "limit": null,
+    "offset": null,
+    "count": null,
+    "has_more": null,
+    "next_cursor": null
+  },
+  "fetched_at": null,
+  "age": null
 }
 ```
 
@@ -367,18 +398,18 @@ Parameters:
 
 ### `GET /track`
 
-One call from free text to the live picture. kind=vessel: resolves an IMO, MMSI or exact vessel name and returns its details and latest position. kind=port: resolves a UN/LOCODE or exact port name and returns its details and the nearest vessels within 5 km. An ambiguous name answers 400 with candidates.
+From free text to the live picture. kind=vessel: resolves an IMO, MMSI or exact vessel name and returns the vessel's details (`vessel`) and latest position with voyage (`position`). kind=port: resolves a UN/LOCODE or exact port name and returns the port's details (`port`) and the nearest vessels within 5 km (`vessels`, nearest first). `resolved` says what the text was resolved to. A name matching several vessels or ports is refused as ambiguous, with the candidates listed in the error.
 
-Each successful request uses 10 credits.
+Each successful request uses 5 credits.
 
 Methods: `track` (Python, JavaScript/TypeScript, PHP, Ruby, Java) · `Track` (Go) · `TrackAsync` (C#)
 
 Parameters:
 
-- `query` (string, required): Vessel name/IMO/MMSI, or port name/UN/LOCODE. Example: `ever given`.
-- `kind` (string, optional): What to resolve the text to. One of: `vessel`, `port`. Example: `vessel`.
+- `query` (string, optional): vessel name, IMO or MMSI (kind=vessel), or port name or UN/LOCODE (kind=port). Example: `ever given`.
+- `kind` (string, optional): what to resolve the text to: vessel or port. One of: `vessel`, `port`. Example: `vessel`.
 - `nearby` (integer, optional): kind=port: how many nearby vessels to include (0 to 50). Example: `10`.
-- `refresh` (boolean, optional): Bypass and repopulate the cache (answers are cached for 5 minutes). Example: `false`.
+- `undefined` (string, optional)
 
 <details>
 <summary>Example response</summary>
@@ -411,102 +442,53 @@ Parameters:
       "width_m": 59,
       "ais_class": "Class A",
       "home_port": null,
-      "url": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138"
+      "url": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138",
+      "summary": "EVER GIVEN (IMO: 9811000) is a Container Ship and is sailing under the flag of Liberia. Her length overall (LOA) is 399.94 meters and her width is 59 meters."
     },
     "position": {
       "name": "EVER GIVEN",
       "imo": "9811000",
       "mmsi": "636026627",
       "ship_id": "5630138",
-      "latitude": 26.873938,
-      "longitude": 122.03899,
-      "speed_knots": 15.1,
-      "course": 208,
-      "heading": 213,
-      "rate_of_turn": 9,
+      "latitude": 22.572479,
+      "longitude": 114.28415,
+      "speed_knots": 0,
+      "course": 154,
+      "heading": 319,
+      "rate_of_turn": 0,
       "draught_m": 14.2,
-      "status": "Underway using Engine",
-      "area": "East China Sea",
-      "timestamp": "2026-11-21T05:41:07.000Z",
-      "position_age_minutes": 47,
-      "received_by": "Roaming",
+      "status": "Moored",
+      "area": "South China",
+      "timestamp": "2026-11-27T10:10:54.000Z",
+      "position_age_minutes": 2,
+      "received_by": "Terrestrial",
       "in_range": true,
-      "destination": "TWTPE",
-      "eta": "2026-11-21T14:00:00.000Z",
-      "voyage_progress_pct": 70.9,
+      "destination": "CNYTN",
+      "eta": "2026-11-27T02:00:00.000Z",
+      "voyage_progress_pct": 100,
       "departure_port": {
-        "port_id": "1253",
-        "name": "SHANGHAI",
-        "unlocode": "CNSHG",
-        "country_code": "CN"
-      },
-      "departure_time": "2026-11-20T11:25:00.000Z",
-      "arrival_port": {
         "port_id": "447",
         "name": "TAIPEI",
         "unlocode": "TWTPE",
         "country_code": "TW"
       },
-      "arrival_time": "2026-11-21T14:00:00.000Z",
-      "arrival_time_kind": "estimated"
+      "departure_time": "2026-11-22T10:55:00.000Z",
+      "arrival_port": {
+        "port_id": "1006",
+        "name": "YANTIAN",
+        "unlocode": "CNYTN",
+        "country_code": "CN"
+      },
+      "arrival_time": "2026-11-27T02:58:00.000Z",
+      "arrival_time_kind": "actual"
     },
-    "port": {
-      "port_id": "2036",
-      "name": "ROTTERDAM",
-      "unlocode": "NLRTM",
-      "country": "NETHERLANDS",
-      "country_code": "NL",
-      "type": "Port",
-      "size": "Large",
-      "latitude": 51.943306,
-      "longitude": 4.1418123,
-      "utc_offset_hours": 1,
-      "alternative_names": [
-        "EUROPOORT"
-      ],
-      "anchorages": [
-        {
-          "port_id": "22307",
-          "name": "ROTTERDAM ANCH"
-        }
-      ],
-      "related_ports": [
-        {
-          "port_id": "2033",
-          "name": "ROTTERDAM BOTLEK"
-        }
-      ],
-      "summary": "ROTTERDAM is located at UK Coast & Atlantic, Rotterdam Area in NETHERLANDS. The official UN/LOCODE of this port is NLRTM.",
-      "url": "https://www.marinetraffic.com/en/ais/details/ports/2036"
-    },
-    "nearby": {
-      "radius_km": 5,
-      "count": 182,
-      "vessels": [
-        {
-          "ship_id": "3387654",
-          "ref": "shipid:3387654",
-          "name": "SNIP",
-          "flag_code": "NL",
-          "vessel_type": "cargo",
-          "latitude": 51.952328,
-          "longitude": 4.1202168,
-          "distance_km": 1.77,
-          "speed_knots": 0,
-          "course": null,
-          "heading": 169,
-          "destination": "ROTTERDAM",
-          "length_m": 64,
-          "width_m": 7,
-          "dwt": 1200,
-          "position_age_minutes": 2,
-          "timestamp": "2026-11-21T06:40:00.000Z"
-        }
-      ]
-    }
+    "fetched_at": "2026-11-27T10:13:04.716Z",
+    "age": 0
   },
-  "cached": false,
-  "source": "marinetraffic:web"
+  "cached": null,
+  "source": null,
+  "fetched_at": null,
+  "age": null
 }
 ```
 
@@ -514,18 +496,20 @@ Parameters:
 
 ### `GET /vessels`
 
-Search vessels by name, IMO or MMSI. Each match carries its particulars (IMO, MMSI, call sign, flag, type, size). The site returns at most 12 matches per query and has no paging: use a fuller name, or the IMO/MMSI, to reach a specific vessel.
+Vessels whose name (current or former), IMO or MMSI matches the text, in the site's relevance order (at most 12; use a fuller name or the IMO/MMSI to reach a specific vessel). Each row carries the vessel's particulars: ship id, IMO, MMSI, call sign, flag, type, market, size class, length and width, plus the name or number it matched on.
 
-Each successful request uses 10 credits for every 12 rows it returns (at least 10 credits).
+Each successful request uses 5 credits.
 
 Methods: `vessels` (Python, JavaScript/TypeScript, PHP, Ruby, Java) · `Vessels` (Go) · `VesselsAsync` (C#)
 
 Parameters:
 
-- `query` (string, required): Vessel name (at least 3 characters), IMO number or MMSI. Example: `ever given`.
-- `limit` (integer, optional): Rows per page (default 50, max 200). Example: `50`.
-- `offset` (integer, optional): Rows to skip. Example: `0`.
-- `refresh` (boolean, optional): Bypass and repopulate the cache (answers are cached for 5 minutes). Example: `false`.
+- `query` (string, optional): vessel name (at least 3 characters), IMO number or MMSI. Example: `ever given`.
+- `limit` (integer, optional): Rows in one page, 1 to 200 (default 50).
+- `offset` (integer, optional): Rows to skip before the page starts (default 0).
+- `undefined` (string, optional)
+- `undefined` (string, optional)
+- `undefined` (string, optional)
 
 <details>
 <summary>Example response</summary>
@@ -558,17 +542,27 @@ Parameters:
         "url": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138",
         "matched_on": "EVER GIVEN"
       }
-    ]
+    ],
+    "pagination": {
+      "count": 1,
+      "has_more": false,
+      "next_cursor": null
+    },
+    "fetched_at": "2026-11-27T10:13:05.843Z",
+    "age": 0
   },
-  "cached": false,
-  "source": "marinetraffic:web",
+  "cached": null,
+  "source": null,
   "pagination": {
-    "total": 182,
-    "limit": 50,
-    "offset": 0,
-    "count": 50,
-    "has_more": true
-  }
+    "total": null,
+    "limit": null,
+    "offset": null,
+    "count": null,
+    "has_more": null,
+    "next_cursor": null
+  },
+  "fetched_at": null,
+  "age": null
 }
 ```
 
@@ -576,16 +570,16 @@ Parameters:
 
 ### `GET /vessels/{imo}`
 
-Registry details of one vessel: name, IMO, MMSI, call sign, flag, type, commercial market and size class, length and width. Build year is not public on the site (login only) and is not returned.
+Registry details of one vessel: name, AIS name, IMO, MMSI, call sign, flag, type, AIS type, commercial market and size class, length and width, AIS class, home port and the site's summary sentence. Build year is not public and is not returned.
 
-Each successful request uses 10 credits.
+Each successful request uses 5 credits.
 
 Methods: `vessels_by_imo` (Python, Ruby) · `vesselsByImo` (JavaScript/TypeScript, PHP, Java) · `VesselsByImo` (Go) · `VesselsByImoAsync` (C#)
 
 Parameters:
 
 - `imo` (string, required, in the path): 7-digit IMO number, 9-digit MMSI, or shipid:<id> (the `ref` of a list row, for vessels with no IMO). Example: `9811000`.
-- `refresh` (boolean, optional): Bypass and repopulate the cache (answers are cached for 5 minutes). Example: `false`.
+- `undefined` (string, optional)
 
 <details>
 <summary>Example response</summary>
@@ -611,10 +605,14 @@ Parameters:
     "ais_class": "Class A",
     "home_port": null,
     "url": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138",
-    "summary": "EVER GIVEN (IMO: 9811000) is a Container Ship and is sailing under the flag of Liberia."
+    "summary": "EVER GIVEN (IMO: 9811000) is a Container Ship and is sailing under the flag of Liberia. Her length overall (LOA) is 399.94 meters and her width is 59 meters.",
+    "fetched_at": "2026-11-27T10:13:05.329Z",
+    "age": 0
   },
-  "cached": false,
-  "source": "marinetraffic:web"
+  "cached": null,
+  "source": null,
+  "fetched_at": null,
+  "age": null
 }
 ```
 
@@ -622,16 +620,16 @@ Parameters:
 
 ### `GET /vessels/{imo}/position`
 
-Latest AIS position of one vessel (lat/lon, speed, course, heading, navigational status, time of report) with its voyage: reported destination, ETA, departure and arrival ports.
+Latest AIS position of one vessel (latitude/longitude, speed in knots, course, heading, rate of turn, draught, navigational status, sea area, report time in UTC and its age, reception type) with its voyage: destination reported over AIS, ETA, progress, departure port and time, arrival port and time (actual once arrived, else estimated).
 
-Each successful request uses 10 credits.
+Each successful request uses 5 credits.
 
 Methods: `vessels_position_by_imo` (Python, Ruby) · `vesselsPositionByImo` (JavaScript/TypeScript, PHP, Java) · `VesselsPositionByImo` (Go) · `VesselsPositionByImoAsync` (C#)
 
 Parameters:
 
 - `imo` (string, required, in the path): 7-digit IMO number, 9-digit MMSI, or shipid:<id>. Example: `9811000`.
-- `refresh` (boolean, optional): Bypass and repopulate the cache (answers are cached for 5 minutes). Example: `false`.
+- `undefined` (string, optional)
 
 <details>
 <summary>Example response</summary>
@@ -643,40 +641,44 @@ Parameters:
     "imo": "9811000",
     "mmsi": "636026627",
     "ship_id": "5630138",
-    "latitude": 26.873938,
-    "longitude": 122.03899,
-    "speed_knots": 15.1,
-    "course": 208,
-    "heading": 213,
-    "rate_of_turn": 9,
+    "latitude": 22.572479,
+    "longitude": 114.28415,
+    "speed_knots": 0,
+    "course": 154,
+    "heading": 319,
+    "rate_of_turn": 0,
     "draught_m": 14.2,
-    "status": "Underway using Engine",
-    "area": "East China Sea",
-    "timestamp": "2026-11-21T05:41:07.000Z",
-    "position_age_minutes": 47,
-    "received_by": "Roaming",
+    "status": "Moored",
+    "area": "South China",
+    "timestamp": "2026-11-27T10:10:54.000Z",
+    "position_age_minutes": 2,
+    "received_by": "Terrestrial",
     "in_range": true,
-    "destination": "TWTPE",
-    "eta": "2026-11-21T14:00:00.000Z",
-    "voyage_progress_pct": 70.9,
+    "destination": "CNYTN",
+    "eta": "2026-11-27T02:00:00.000Z",
+    "voyage_progress_pct": 100,
     "departure_port": {
-      "port_id": "1253",
-      "name": "SHANGHAI",
-      "unlocode": "CNSHG",
-      "country_code": "CN"
-    },
-    "departure_time": "2026-11-20T11:25:00.000Z",
-    "arrival_port": {
       "port_id": "447",
       "name": "TAIPEI",
       "unlocode": "TWTPE",
       "country_code": "TW"
     },
-    "arrival_time": "2026-11-21T14:00:00.000Z",
-    "arrival_time_kind": "estimated"
+    "departure_time": "2026-11-22T10:55:00.000Z",
+    "arrival_port": {
+      "port_id": "1006",
+      "name": "YANTIAN",
+      "unlocode": "CNYTN",
+      "country_code": "CN"
+    },
+    "arrival_time": "2026-11-27T02:58:00.000Z",
+    "arrival_time_kind": "actual",
+    "fetched_at": "2026-11-27T10:13:05.605Z",
+    "age": 0
   },
-  "cached": false,
-  "source": "marinetraffic:web"
+  "cached": null,
+  "source": null,
+  "fetched_at": null,
+  "age": null
 }
 ```
 
@@ -689,7 +691,7 @@ Parameters:
 - [maviapi MCP server](https://maviapi.com/docs#mcp): the same API as tools for Claude, Cursor and other AI agents.
 - [All maviapi APIs](https://maviapi.com/apis?utm_source=github&utm_medium=readme&utm_campaign=sdk-marinetraffic). Need a website that is not there? [Ask for it](https://maviapi.com/?utm_source=github&utm_medium=readme&utm_campaign=sdk-marinetraffic) and get an API for it.
 
-Other unofficial SDKs: [Airbnb](https://github.com/maviapi-sdks/airbnb-unofficial-sdk) · [Booking.com](https://github.com/maviapi-sdks/booking-unofficial-sdk) · [GetYourGuide](https://github.com/maviapi-sdks/getyourguide-unofficial-sdk) · [Google Search](https://github.com/maviapi-sdks/google-search-unofficial-sdk) · [Kiwi.com](https://github.com/maviapi-sdks/kiwi-unofficial-sdk) · [Speedtest](https://github.com/maviapi-sdks/speedtest-unofficial-sdk) · [Trainline](https://github.com/maviapi-sdks/trainline-unofficial-sdk) · [Trendyol](https://github.com/maviapi-sdks/trendyol-unofficial-sdk) · [Tripadvisor](https://github.com/maviapi-sdks/tripadvisor-unofficial-sdk) · [Yemeksepeti](https://github.com/maviapi-sdks/yemeksepeti-unofficial-sdk)
+Other unofficial SDKs: [Airbnb](https://github.com/maviapi-sdks/airbnb-unofficial-sdk) · [Booking.com](https://github.com/maviapi-sdks/booking-unofficial-sdk) · [FlightList](https://github.com/maviapi-sdks/flightlist-unofficial-sdk) · [GetYourGuide](https://github.com/maviapi-sdks/getyourguide-unofficial-sdk) · [Google Search](https://github.com/maviapi-sdks/google-search-unofficial-sdk) · [Kiwi.com](https://github.com/maviapi-sdks/kiwi-unofficial-sdk) · [Speedtest](https://github.com/maviapi-sdks/speedtest-unofficial-sdk) · [Trainline](https://github.com/maviapi-sdks/trainline-unofficial-sdk) · [Trendyol](https://github.com/maviapi-sdks/trendyol-unofficial-sdk) · [Tripadvisor](https://github.com/maviapi-sdks/tripadvisor-unofficial-sdk) · [Yemeksepeti](https://github.com/maviapi-sdks/yemeksepeti-unofficial-sdk)
 
 ## License
 
