@@ -154,7 +154,7 @@ Console.WriteLine(result);
 |---|---|---|
 | [`GET /ports`](#get-ports) | Ports, anchorages and offshore terminals whose name or UN/LOCODE matches the text, in the site's relevance order (the site returns at most about 12 matches). | 5 |
 | [`GET /ports/{port}`](#get-portsport) | Details of one port: name, UN/LOCODE, country, type, size, coordinates, UTC offset in hours, alternative names, its anchorages, related ports and the site's one-paragraph summary. | 5 |
-| [`GET /ports/{port}/vessels`](#get-portsportvessels) | Ships currently in or near a port: every identified vessel the live map shows within radius_km of the port's position (anonymous [SAT-AIS] placeholders left out), nearest first, with position, distance, speed, course, heading, AIS destination, size, deadweight and the age of the position. | 5 |
+| [`GET /ports/{port}/vessels`](#get-portsportvessels) | Ships currently in or near a port: every vessel the live map shows within radius_km of the port's position, nearest first, including anonymous satellite positions (name "[SAT-AIS]", `ref` null), with position, distance, speed, course, heading, AIS destination, size, deadweight and the age of the position. | 5 |
 | [`GET /track`](#get-track) | From free text to the live picture. | 5 |
 | [`GET /vessels`](#get-vessels) | Vessels whose name (current or former), IMO or MMSI matches the text, in the site's relevance order (at most 12; use a fuller name or the IMO/MMSI to reach a specific vessel). | 5 |
 | [`GET /vessels/{imo}`](#get-vesselsimo) | Registry details of one vessel: name, AIS name, IMO, MMSI, call sign, flag, type, AIS type, commercial market and size class, length and width, AIS class, home port and the site's summary sentence. | 5 |
@@ -182,7 +182,7 @@ A request the API answers with an error status raises an `ApiError` (in Go, retu
 
 ## Endpoint reference
 
-Base URL: `https://api.maviapi.com/v1/sites/marinetraffic`. API version 2026-11-27. The same contract is in [`openapi.json`](openapi.json).
+Base URL: `https://api.maviapi.com/v1/sites/marinetraffic`. API version 2026-11-28. The same contract is in [`openapi.json`](openapi.json).
 
 ### `GET /ports`
 
@@ -230,7 +230,7 @@ Parameters:
       "has_more": false,
       "next_cursor": null
     },
-    "fetched_at": "2026-11-27T10:13:03.176Z",
+    "fetched_at": "2026-11-28T06:31:32.747Z",
     "age": 0
   },
   "cached": null,
@@ -298,7 +298,7 @@ Parameters:
       "has_more": false,
       "next_cursor": null
     },
-    "fetched_at": "2026-11-27T10:13:01.235Z",
+    "fetched_at": "2026-11-28T06:31:32.961Z",
     "age": 0
   },
   "cached": null,
@@ -312,7 +312,7 @@ Parameters:
 
 ### `GET /ports/{port}/vessels`
 
-Ships currently in or near a port: every identified vessel the live map shows within radius_km of the port's position (anonymous [SAT-AIS] placeholders left out), nearest first, with position, distance, speed, course, heading, AIS destination, size, deadweight and the age of the position. `complete` is false only if part of the area could not be read; `map_requests` is how many map tiles were read.
+Ships currently in or near a port: every vessel the live map shows within radius_km of the port's position, nearest first, including anonymous satellite positions (name "[SAT-AIS]", `ref` null), with position, distance, speed, course, heading, AIS destination, size, deadweight and the age of the position. `complete` is false only if part of the area could not be read; `map_requests` is how many map tiles were read.
 
 Each successful request uses 5 credits.
 
@@ -349,34 +349,34 @@ Parameters:
     "moving": null,
     "complete": true,
     "map_requests": 16,
-    "count": 188,
+    "count": 182,
     "vessels": [
       {
-        "ship_id": "7183696",
-        "ref": "shipid:7183696",
-        "name": "KRVE 87",
+        "ship_id": "2721357",
+        "ref": "shipid:2721357",
+        "name": "RVE 53",
         "flag_code": "NL",
-        "vessel_type": "tug_special",
-        "latitude": 51.948772,
-        "longitude": 4.1490202,
+        "vessel_type": "cargo",
+        "latitude": 51.948727,
+        "longitude": 4.1489549,
         "distance_km": 0.78,
         "speed_knots": 0,
-        "course": 352,
+        "course": null,
         "heading": null,
         "destination": null,
-        "length_m": 16,
-        "width_m": 5,
+        "length_m": 69,
+        "width_m": 7,
         "dwt": null,
-        "position_age_minutes": 3,
-        "timestamp": "2026-11-27T10:10:00.000Z"
+        "position_age_minutes": 2,
+        "timestamp": "2026-11-28T06:29:00.000Z"
       }
     ],
     "pagination": {
-      "count": 188,
+      "count": 182,
       "has_more": false,
       "next_cursor": null
     },
-    "fetched_at": "2026-11-27T10:13:39.455Z",
+    "fetched_at": "2026-11-28T06:31:33.947Z",
     "age": 0
   },
   "cached": null,
@@ -450,39 +450,39 @@ Parameters:
       "imo": "9811000",
       "mmsi": "636026627",
       "ship_id": "5630138",
-      "latitude": 22.572479,
-      "longitude": 114.28415,
-      "speed_knots": 0,
-      "course": 154,
-      "heading": 319,
+      "latitude": 22.069181,
+      "longitude": 114.51392,
+      "speed_knots": 18.7,
+      "course": 194,
+      "heading": 195,
       "rate_of_turn": 0,
-      "draught_m": 14.2,
-      "status": "Moored",
+      "draught_m": 15.2,
+      "status": "Underway using Engine",
       "area": "South China",
-      "timestamp": "2026-11-27T10:10:54.000Z",
+      "timestamp": "2026-11-28T06:29:11.000Z",
       "position_age_minutes": 2,
-      "received_by": "Terrestrial",
+      "received_by": "Roaming",
       "in_range": true,
-      "destination": "CNYTN",
-      "eta": "2026-11-27T02:00:00.000Z",
-      "voyage_progress_pct": 100,
+      "destination": "SGSGP",
+      "eta": "2026-12-01T02:00:00.000Z",
+      "voyage_progress_pct": 2.34,
       "departure_port": {
-        "port_id": "447",
-        "name": "TAIPEI",
-        "unlocode": "TWTPE",
-        "country_code": "TW"
-      },
-      "departure_time": "2026-11-22T10:55:00.000Z",
-      "arrival_port": {
         "port_id": "1006",
         "name": "YANTIAN",
         "unlocode": "CNYTN",
         "country_code": "CN"
       },
-      "arrival_time": "2026-11-27T02:58:00.000Z",
-      "arrival_time_kind": "actual"
+      "departure_time": "2026-11-28T03:51:00.000Z",
+      "arrival_port": {
+        "port_id": "290",
+        "name": "SINGAPORE",
+        "unlocode": "SGSIN",
+        "country_code": "SG"
+      },
+      "arrival_time": "2026-12-01T02:00:00.000Z",
+      "arrival_time_kind": "estimated"
     },
-    "fetched_at": "2026-11-27T10:13:04.716Z",
+    "fetched_at": "2026-11-28T06:31:34.224Z",
     "age": 0
   },
   "cached": null,
@@ -548,7 +548,7 @@ Parameters:
       "has_more": false,
       "next_cursor": null
     },
-    "fetched_at": "2026-11-27T10:13:05.843Z",
+    "fetched_at": "2026-11-28T06:31:33.151Z",
     "age": 0
   },
   "cached": null,
@@ -606,7 +606,7 @@ Parameters:
     "home_port": null,
     "url": "https://www.marinetraffic.com/en/ais/details/ships/shipid:5630138",
     "summary": "EVER GIVEN (IMO: 9811000) is a Container Ship and is sailing under the flag of Liberia. Her length overall (LOA) is 399.94 meters and her width is 59 meters.",
-    "fetched_at": "2026-11-27T10:13:05.329Z",
+    "fetched_at": "2026-11-28T06:31:33.414Z",
     "age": 0
   },
   "cached": null,
@@ -641,38 +641,38 @@ Parameters:
     "imo": "9811000",
     "mmsi": "636026627",
     "ship_id": "5630138",
-    "latitude": 22.572479,
-    "longitude": 114.28415,
-    "speed_knots": 0,
-    "course": 154,
-    "heading": 319,
+    "latitude": 22.069181,
+    "longitude": 114.51392,
+    "speed_knots": 18.7,
+    "course": 194,
+    "heading": 195,
     "rate_of_turn": 0,
-    "draught_m": 14.2,
-    "status": "Moored",
+    "draught_m": 15.2,
+    "status": "Underway using Engine",
     "area": "South China",
-    "timestamp": "2026-11-27T10:10:54.000Z",
+    "timestamp": "2026-11-28T06:29:11.000Z",
     "position_age_minutes": 2,
-    "received_by": "Terrestrial",
+    "received_by": "Roaming",
     "in_range": true,
-    "destination": "CNYTN",
-    "eta": "2026-11-27T02:00:00.000Z",
-    "voyage_progress_pct": 100,
+    "destination": "SGSGP",
+    "eta": "2026-12-01T02:00:00.000Z",
+    "voyage_progress_pct": 2.34,
     "departure_port": {
-      "port_id": "447",
-      "name": "TAIPEI",
-      "unlocode": "TWTPE",
-      "country_code": "TW"
-    },
-    "departure_time": "2026-11-22T10:55:00.000Z",
-    "arrival_port": {
       "port_id": "1006",
       "name": "YANTIAN",
       "unlocode": "CNYTN",
       "country_code": "CN"
     },
-    "arrival_time": "2026-11-27T02:58:00.000Z",
-    "arrival_time_kind": "actual",
-    "fetched_at": "2026-11-27T10:13:05.605Z",
+    "departure_time": "2026-11-28T03:51:00.000Z",
+    "arrival_port": {
+      "port_id": "290",
+      "name": "SINGAPORE",
+      "unlocode": "SGSIN",
+      "country_code": "SG"
+    },
+    "arrival_time": "2026-12-01T02:00:00.000Z",
+    "arrival_time_kind": "estimated",
+    "fetched_at": "2026-11-28T06:31:33.773Z",
     "age": 0
   },
   "cached": null,
@@ -691,7 +691,7 @@ Parameters:
 - [maviapi MCP server](https://maviapi.com/docs#mcp): the same API as tools for Claude, Cursor and other AI agents.
 - [All maviapi APIs](https://maviapi.com/apis?utm_source=github&utm_medium=readme&utm_campaign=sdk-marinetraffic). Need a website that is not there? [Ask for it](https://maviapi.com/?utm_source=github&utm_medium=readme&utm_campaign=sdk-marinetraffic) and get an API for it.
 
-Other unofficial SDKs: [Airbnb](https://github.com/maviapi-sdks/airbnb-unofficial-sdk) · [Booking.com](https://github.com/maviapi-sdks/booking-unofficial-sdk) · [FlightList](https://github.com/maviapi-sdks/flightlist-unofficial-sdk) · [GetYourGuide](https://github.com/maviapi-sdks/getyourguide-unofficial-sdk) · [Google Search](https://github.com/maviapi-sdks/google-search-unofficial-sdk) · [Kiwi.com](https://github.com/maviapi-sdks/kiwi-unofficial-sdk) · [Speedtest](https://github.com/maviapi-sdks/speedtest-unofficial-sdk) · [Trainline](https://github.com/maviapi-sdks/trainline-unofficial-sdk) · [Trendyol](https://github.com/maviapi-sdks/trendyol-unofficial-sdk) · [Tripadvisor](https://github.com/maviapi-sdks/tripadvisor-unofficial-sdk) · [Yemeksepeti](https://github.com/maviapi-sdks/yemeksepeti-unofficial-sdk)
+Other unofficial SDKs: [Airbnb](https://github.com/maviapi-sdks/airbnb-unofficial-sdk) · [Booking.com](https://github.com/maviapi-sdks/booking-unofficial-sdk) · [FlightList](https://github.com/maviapi-sdks/flightlist-unofficial-sdk) · [GetYourGuide](https://github.com/maviapi-sdks/getyourguide-unofficial-sdk) · [Google Search](https://github.com/maviapi-sdks/google-search-unofficial-sdk) · [Kiwi.com](https://github.com/maviapi-sdks/kiwi-unofficial-sdk) · [Madrid Cultural Agenda](https://github.com/maviapi-sdks/madrid-cultural-agenda-unofficial-sdk) · [Speedtest](https://github.com/maviapi-sdks/speedtest-unofficial-sdk) · [Trainline](https://github.com/maviapi-sdks/trainline-unofficial-sdk) · [Trendyol](https://github.com/maviapi-sdks/trendyol-unofficial-sdk) · [Tripadvisor](https://github.com/maviapi-sdks/tripadvisor-unofficial-sdk) · [Yemeksepeti](https://github.com/maviapi-sdks/yemeksepeti-unofficial-sdk)
 
 ## License
 

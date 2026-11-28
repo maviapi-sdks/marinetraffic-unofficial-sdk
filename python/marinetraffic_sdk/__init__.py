@@ -86,11 +86,12 @@ class MarinetrafficClient:
 
     def ports_vessels_by_port(self, *, port: str, radius_km: Optional[float] = None, vessel_type: Optional[str] = None, moving: Optional[str] = None, limit: Optional[int] = None, offset: Optional[int] = None, undefined: Optional[str] = None, undefined: Optional[str] = None, undefined: Optional[str] = None) -> Dict[str, Any]:
         """
-        Ships currently in or near a port: every identified vessel the live map shows within
-        radius_km of the port's position (anonymous [SAT-AIS] placeholders left out),
-        nearest first, with position, distance, speed, course, heading, AIS destination,
-        size, deadweight and the age of the position. `complete` is false only if part of
-        the area could not be read; `map_requests` is how many map tiles were read.
+        Ships currently in or near a port: every vessel the live map shows within radius_km
+        of the port's position, nearest first, including anonymous satellite positions (name
+        "[SAT-AIS]", `ref` null), with position, distance, speed, course, heading, AIS
+        destination, size, deadweight and the age of the position. `complete` is false only
+        if part of the area could not be read; `map_requests` is how many map tiles were
+        read.
 
         Each successful request uses 5 credits.
 
